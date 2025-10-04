@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS IAM Permission Matrix</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00ff00;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 10px;
+            border-bottom: 2px solid #00ff00;
+            background: rgba(0, 0, 0, 0.8);
+        }
+        
+        h1 {
+            color: #ff6b6b;
+            text-shadow: 0 0 10px #ff6b6b;
+            font-size: 18px;
+        }
+        
+        .controls {
+            text-align: center;
+            padding: 10px;
+            border-bottom: 1px solid #00ff00;
+        }
+        
+        .btn {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            margin: 0 5px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #ff6b6b;
+            transform: scale(1.05);
+        }
+        
+        .main-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        .matrix-container {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .permission-node {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 8px 0;
+            position: relative;
+            animation: pulse 2s infinite;
+            transition: all 0.3s;
+        }
+        
+        .permission-node.active {
+            background: rgba(255, 107, 107, 0.2);
+            border-color: #ff6b6b;
+            animation: glow 1s infinite alternate;
+            transform: scale(1.02);
+        }
+        
+        .permission-node.completed {
+            background: rgba(0, 255, 0, 0.3);
+            border-color: #00ff00;
+        }
+        
+        .permission-node.admin {
+            background: rgba(255, 0, 0, 0.1);
+            border-color: #ff0000;
+        }
+        
+        .permission-node.readonly {
+            background: rgba(0, 150, 255, 0.1);
+            border-color: #0096ff;
+        }
+        
+        .permission-node.custom {
+            background: rgba(255, 165, 0, 0.1);
+            border-color: #ffa500;
+        }
+        
+        .permission-node.escalation {
+            background: rgba(255, 0, 255, 0.1);
+            border-color: #ff00ff;
+        }
+        
+        .node-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .node-info h3 {
+            color: #ff6b6b;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .node-info p {
+            font-size: 11px;
+            color: #00ff00;
+            margin: 2px 0;
+        }
+        
+        .node-metrics {
+            text-align: right;
+            font-size: 10px;
+        }
+        
+        .metric {
+            color: #00ffff;
+            margin: 1px 0;
+        }
+        
+        .metric.success {
+            color: #00ff00;
+        }
+        
+        .metric.error {
+            color: #ff0000;
+        }
+        
+        .metric.warning {
+            color: #ffa500;
+        }
+        
+        .tree-connector {
+            position: absolute;
+            left: -15px;
+            top: 50%;
+            width: 10px;
+            height: 2px;
+            background: #00ff00;
+        }
+        
+        .tree-connector::before {
+            content: '';
+            position: absolute;
+            left: -5px;
+            top: -5px;
+            width: 2px;
+            height: 12px;
+            background: #00ff00;
+        }
+        
+        .metrics-panel {
+            width: 200px;
+            background: rgba(0, 0, 0, 0.8);
+            border-left: 2px solid #00ff00;
+            padding: 15px;
+            overflow-y: auto;
+        }
+        
+        .metric-card {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #00ff00;
+            border-radius: 3px;
+            padding: 8px;
+            margin: 5px 0;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ff6b6b;
+        }
+        
+        .metric-label {
+            font-size: 10px;
+            color: #00ff00;
+            margin-top: 2px;
+        }
+        
+        .log-panel {
+            height: 120px;
+            background: rgba(0, 0, 0, 0.9);
+            border-top: 1px solid #333;
+            padding: 10px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            font-size: 10px;
+            margin: 1px 0;
+            padding: 2px 5px;
+            border-radius: 2px;
+        }
+        
+        .log-info { background: rgba(0, 150, 255, 0.2); }
+        .log-success { background: rgba(0, 255, 0, 0.2); }
+        .log-warning { background: rgba(255, 165, 0, 0.2); }
+        .log-error { background: rgba(255, 0, 0, 0.2); }
+        
+        .status {
+            text-align: center;
+            padding: 5px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status.running {
+            color: #ff6b6b;
+            animation: blink 1s infinite;
+        }
+        
+        .status.completed {
+            color: #00ff00;
+        }
+        
+        .status.paused {
+            color: #ffa500;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        @keyframes glow {
+            from { box-shadow: 0 0 5px #ff6b6b; }
+            to { box-shadow: 0 0 15px #ff6b6b, 0 0 25px #ff6b6b; }
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .permission-level {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 0, 255, 0.2);
+            border: 1px solid #ff00ff;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-size: 10px;
+            color: #ff00ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔐 AWS IAM Permission Matrix</h1>
+    </div>
+    
+    <div class="controls">
+        <button class="btn" onclick="startAnalysis()">▶️ Analyze Permissions</button>
+        <button class="btn" onclick="pauseAnalysis()">⏸️ Pause</button>
+        <button class="btn" onclick="resetAnalysis()">🔄 Reset</button>
+    </div>
+    
+    <div class="status" id="status">Ready to analyze IAM permissions</div>
+    
+    <div class="main-container">
+        <div class="matrix-container">
+            <div class="permission-node admin" id="admin-policy">
+                <div class="permission-level">Admin</div>
+                <div class="node-content">
+                    <div class="node-info">
+                        <h3>👑 AdministratorAccess</h3>
+                        <p>Full AWS access</p>
+                        <p>Policy: AdministratorAccess</p>
+                    </div>
+                    <div class="node-metrics">
+                        <div class="metric error">Risk: Critical</div>
+                        <div class="metric">Users: 0</div>
+                        <div class="metric">Roles: 0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="permission-node escalation" id="iam-policy">
+                <div class="permission-level">Escalation</div>
+                <div class="tree-connector"></div>
+                <div class="node-content">
+                    <div class="node-info">
+                        <h3>⚡ IAMFullAccess</h3>
+                        <p>IAM escalation risk</p>
+                        <p>Policy: IAMFullAccess</p>
+                    </div>
+                    <div class="node-metrics">
+                        <div class="metric error">Risk: High</div>
+                        <div class="metric">Users: 0</div>
+                        <div class="metric">Roles: 0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="permission-node escalation" id="lambda-policy">
+                <div class="permission-level">Escalation</div>
+                <div class="tree-connector"></div>
+                <div class="node-content">
+                    <div class="node-info">
+                        <h3>🔧 LambdaFullAccess</h3>
+                        <p>Lambda backdoor risk</p>
+                        <p>Policy: LambdaFullAccess</p>
+                    </div>
+                    <div class="node-metrics">
+                        <div class="metric warning">Risk: Medium</div>
+                        <div class="metric">Users: 0</div>
+                        <div class="metric">Roles: 0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="permission-node escalation" id="ec2-policy">
+                <div class="permission-level">Escalation</div>
+                <div class="tree-connector"></div>
+                <div class="node-content">
+                    <div class="node-info">
+                        <h3>🖥️ EC2FullAccess</h3>
+                        <p>EC2 instance access</p>
+                        <p>Policy: EC2FullAccess</p>
+                    </div>
+                    <div class="node-metrics">
+                        <div class="metric warning">Risk: Medium</div>
+                        <div class="metric">Users: 0</div>
+                        <div class="metric">Roles: 0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="permission-node custom" id="s3-policy">
+                <div class="permission-level">Custom</div>
+                <div class="tree-connector"></div>
+                <div class="node-content">
+                    <div class="node-info">
+                        <h3>📦 S3FullAccess</h3>
+                        <p>S3 data access</p>
+                        <p>Policy: S3FullAccess</p>
+                    </div>
+                    <div class="node-metrics">
+                        <div class="metric warning">Risk: Medium</div>
+                        <div class="metric">Users: 0</div>
+                        <div class="metric">Roles: 0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="permission-node readonly" id="readonly-policy">
+                <div class="permission-level">ReadOnly</div>
+                <div class="tree-connector"></div>
+                <div class="node-content">
+                    <div class="node-info">
+                        <h3>👁️ ReadOnlyAccess</h3>
+                        <p>View-only permissions</p>
+                        <p>Policy: ReadOnlyAccess</p>
+                    </div>
+                    <div class="node-metrics">
+                        <div class="metric success">Risk: Low</div>
+                        <div class="metric">Users: 0</div>
+                        <div class="metric">Roles: 0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="metrics-panel">
+            <div class="metric-card">
+                <div class="metric-value" id="totalPolicies">0</div>
+                <div class="metric-label">Total Policies</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="adminPolicies">0</div>
+                <div class="metric-label">Admin Policies</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="escalationPolicies">0</div>
+                <div class="metric-label">Escalation Risk</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="totalUsers">0</div>
+                <div class="metric-label">Total Users</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="totalRoles">0</div>
+                <div class="metric-label">Total Roles</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="riskScore">0%</div>
+                <div class="metric-label">Risk Score</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="log-panel">
+        <div id="logContainer"></div>
+    </div>
+    
+    <script>
+        let isRunning = false;
+        let isPaused = false;
+        let startTime = 0;
+        let metrics = {
+            totalPolicies: 0,
+            adminPolicies: 0,
+            escalationPolicies: 0,
+            totalUsers: 0,
+            totalRoles: 0,
+            riskScore: 0
+        };
+        
+        const nodes = [
+            'admin-policy', 'iam-policy', 'lambda-policy', 
+            'ec2-policy', 's3-policy', 'readonly-policy'
+        ];
+        
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            while (logContainer.children.length > 20) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+        
+        function updateMetrics() {
+            document.getElementById('totalPolicies').textContent = metrics.totalPolicies;
+            document.getElementById('adminPolicies').textContent = metrics.adminPolicies;
+            document.getElementById('escalationPolicies').textContent = metrics.escalationPolicies;
+            document.getElementById('totalUsers').textContent = metrics.totalUsers;
+            document.getElementById('totalRoles').textContent = metrics.totalRoles;
+            document.getElementById('riskScore').textContent = metrics.riskScore + '%';
+        }
+        
+        function activateNode(nodeId) {
+            const node = document.getElementById(nodeId);
+            if (node) {
+                node.classList.add('active');
+                setTimeout(() => {
+                    node.classList.remove('active');
+                    node.classList.add('completed');
+                }, 2000);
+            }
+        }
+        
+        function updateNodeMetrics(nodeId, metrics) {
+            const node = document.getElementById(nodeId);
+            if (node) {
+                const metricsDiv = node.querySelector('.node-metrics');
+                if (metricsDiv && metrics) {
+                    metricsDiv.innerHTML = '';
+                    Object.entries(metrics).forEach(([key, value]) => {
+                        const metricDiv = document.createElement('div');
+                        metricDiv.className = 'metric';
+                        if (key.includes('Risk') && value === 'Critical') metricDiv.className += ' error';
+                        if (key.includes('Risk') && value === 'High') metricDiv.className += ' error';
+                        if (key.includes('Risk') && value === 'Medium') metricDiv.className += ' warning';
+                        if (key.includes('Risk') && value === 'Low') metricDiv.className += ' success';
+                        metricDiv.textContent = `${key}: ${value}`;
+                        metricsDiv.appendChild(metricDiv);
+                    });
+                }
+            }
+        }
+        
+        async function executeAnalysisStep(stepIndex) {
+            if (!isRunning || isPaused) return;
+            
+            const nodeId = nodes[stepIndex];
+            const stepNames = [
+                'AdministratorAccess Analysis',
+                'IAMFullAccess Risk Assessment',
+                'LambdaFullAccess Backdoor Check',
+                'EC2FullAccess Instance Analysis',
+                'S3FullAccess Data Risk',
+                'ReadOnlyAccess Security Review'
+            ];
+            
+            log(`🔍 Analyzing: ${stepNames[stepIndex]}`, 'info');
+            activateNode(nodeId);
+            
+            const stepTime = Math.random() * 3 + 2;
+            await new Promise(resolve => setTimeout(resolve, stepTime * 100));
+            
+            if (stepIndex === 0) {
+                metrics.totalPolicies++;
+                metrics.adminPolicies++;
+                metrics.totalUsers = Math.floor(Math.random() * 3) + 1;
+                metrics.totalRoles = Math.floor(Math.random() * 2) + 1;
+                updateNodeMetrics(nodeId, {
+                    'Risk': 'Critical',
+                    'Users': metrics.totalUsers,
+                    'Roles': metrics.totalRoles
+                });
+                log(`👑 AdministratorAccess found: ${metrics.totalUsers} users, ${metrics.totalRoles} roles`, 'error');
+            }
+            
+            if (stepIndex === 1) {
+                metrics.totalPolicies++;
+                metrics.escalationPolicies++;
+                metrics.totalUsers += Math.floor(Math.random() * 2) + 1;
+                metrics.totalRoles += Math.floor(Math.random() * 2) + 1;
+                updateNodeMetrics(nodeId, {
+                    'Risk': 'High',
+                    'Users': Math.floor(Math.random() * 3) + 2,
+                    'Roles': Math.floor(Math.random() * 2) + 1
+                });
+                log(`⚡ IAMFullAccess detected: High escalation risk`, 'error');
+            }
+            
+            if (stepIndex === 2) {
+                metrics.totalPolicies++;
+                metrics.escalationPolicies++;
+                updateNodeMetrics(nodeId, {
+                    'Risk': 'Medium',
+                    'Users': Math.floor(Math.random() * 2) + 1,
+                    'Roles': Math.floor(Math.random() * 3) + 1
+                });
+                log(`🔧 LambdaFullAccess: Potential backdoor vector`, 'warning');
+            }
+            
+            if (stepIndex === 3) {
+                metrics.totalPolicies++;
+                metrics.escalationPolicies++;
+                updateNodeMetrics(nodeId, {
+                    'Risk': 'Medium',
+                    'Users': Math.floor(Math.random() * 2) + 1,
+                    'Roles': Math.floor(Math.random() * 2) + 1
+                });
+                log(`🖥️ EC2FullAccess: Instance access detected`, 'warning');
+            }
+            
+            if (stepIndex === 4) {
+                metrics.totalPolicies++;
+                updateNodeMetrics(nodeId, {
+                    'Risk': 'Medium',
+                    'Users': Math.floor(Math.random() * 3) + 2,
+                    'Roles': Math.floor(Math.random() * 2) + 1
+                });
+                log(`📦 S3FullAccess: Data access permissions`, 'warning');
+            }
+            
+            if (stepIndex === 5) {
+                metrics.totalPolicies++;
+                updateNodeMetrics(nodeId, {
+                    'Risk': 'Low',
+                    'Users': Math.floor(Math.random() * 5) + 3,
+                    'Roles': Math.floor(Math.random() * 3) + 2
+                });
+                log(`👁️ ReadOnlyAccess: Safe permissions detected`, 'success');
+            }
+            
+            // Calculate risk score
+            metrics.riskScore = Math.min(100, 
+                (metrics.adminPolicies * 40) + 
+                (metrics.escalationPolicies * 15) + 
+                Math.floor(Math.random() * 10)
+            );
+            
+            updateMetrics();
+            log(`✅ Completed: ${stepNames[stepIndex]}`, 'success');
+            
+            if (stepIndex < nodes.length - 1) {
+                setTimeout(() => executeAnalysisStep(stepIndex + 1), 1000);
+            } else {
+                completeAnalysis();
+            }
+        }
+        
+        function startAnalysis() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            isPaused = false;
+            startTime = Date.now();
+            
+            document.getElementById('status').textContent = 'Analyzing IAM permissions...';
+            document.getElementById('status').className = 'status running';
+            
+            log('🚀 Starting IAM Permission Analysis', 'info');
+            executeAnalysisStep(0);
+        }
+        
+        function pauseAnalysis() {
+            if (!isRunning) return;
+            
+            isPaused = !isPaused;
+            if (isPaused) {
+                document.getElementById('status').textContent = 'Paused';
+                document.getElementById('status').className = 'status paused';
+                log('⏸️ Permission analysis paused', 'warning');
+            } else {
+                document.getElementById('status').textContent = 'Analyzing IAM permissions...';
+                document.getElementById('status').className = 'status running';
+                log('▶️ Permission analysis resumed', 'info');
+            }
+        }
+        
+        function resetAnalysis() {
+            isRunning = false;
+            isPaused = false;
+            startTime = 0;
+            
+            metrics = {
+                totalPolicies: 0,
+                adminPolicies: 0,
+                escalationPolicies: 0,
+                totalUsers: 0,
+                totalRoles: 0,
+                riskScore: 0
+            };
+            
+            document.getElementById('status').textContent = 'Ready to analyze IAM permissions';
+            document.getElementById('status').className = 'status';
+            
+            nodes.forEach(nodeId => {
+                const node = document.getElementById(nodeId);
+                if (node) {
+                    node.classList.remove('active', 'completed');
+                    const metricsDiv = node.querySelector('.node-metrics');
+                    if (metricsDiv) {
+                        const originalMetrics = getOriginalMetrics(nodeId);
+                        updateNodeMetrics(nodeId, originalMetrics);
+                    }
+                }
+            });
+            
+            updateMetrics();
+            document.getElementById('logContainer').innerHTML = '';
+            log('🔄 Permission analysis reset', 'info');
+        }
+        
+        function getOriginalMetrics(nodeId) {
+            const originalMetrics = {
+                'admin-policy': { 'Risk': 'Critical', 'Users': 0, 'Roles': 0 },
+                'iam-policy': { 'Risk': 'High', 'Users': 0, 'Roles': 0 },
+                'lambda-policy': { 'Risk': 'Medium', 'Users': 0, 'Roles': 0 },
+                'ec2-policy': { 'Risk': 'Medium', 'Users': 0, 'Roles': 0 },
+                's3-policy': { 'Risk': 'Medium', 'Users': 0, 'Roles': 0 },
+                'readonly-policy': { 'Risk': 'Low', 'Users': 0, 'Roles': 0 }
+            };
+            return originalMetrics[nodeId] || {};
+        }
+        
+        function completeAnalysis() {
+            isRunning = false;
+            document.getElementById('status').textContent = 'IAM analysis completed!';
+            document.getElementById('status').className = 'status completed';
+            
+            log('✅ IAM Permission Analysis completed!', 'success');
+            log(`📊 Found ${metrics.totalPolicies} policies: ${metrics.adminPolicies} admin, ${metrics.escalationPolicies} escalation risk`, 'success');
+            log(`⚠️ Risk Score: ${metrics.riskScore}% - ${metrics.totalUsers} users, ${metrics.totalRoles} roles`, 'warning');
+        }
+        
+        updateMetrics();
+        log('🎯 IAM Permission Analysis ready', 'info');
+    </script>
+</body>
+</html>

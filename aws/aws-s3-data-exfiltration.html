@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS S3 Data Exfiltration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00ff00;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 10px;
+            border-bottom: 2px solid #00ff00;
+            background: rgba(0, 0, 0, 0.8);
+        }
+        
+        h1 {
+            color: #ff6b6b;
+            text-shadow: 0 0 10px #ff6b6b;
+            font-size: 18px;
+        }
+        
+        .controls {
+            text-align: center;
+            padding: 10px;
+            border-bottom: 1px solid #00ff00;
+        }
+        
+        .btn {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            margin: 0 5px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #ff6b6b;
+            transform: scale(1.05);
+        }
+        
+        .main-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        .exfiltration-container {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .exfiltration-node {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 8px 0;
+            position: relative;
+            animation: pulse 2s infinite;
+            transition: all 0.3s;
+        }
+        
+        .exfiltration-node.active {
+            background: rgba(255, 107, 107, 0.2);
+            border-color: #ff6b6b;
+            animation: glow 1s infinite alternate;
+            transform: scale(1.02);
+        }
+        
+        .exfiltration-node.completed {
+            background: rgba(0, 255, 0, 0.3);
+            border-color: #00ff00;
+        }
+        
+        .exfiltration-node.discovery {
+            background: rgba(0, 150, 255, 0.1);
+            border-color: #0096ff;
+        }
+        
+        .exfiltration-node.access {
+            background: rgba(255, 165, 0, 0.1);
+            border-color: #ffa500;
+        }
+        
+        .exfiltration-node.extraction {
+            background: rgba(255, 0, 255, 0.1);
+            border-color: #ff00ff;
+        }
+        
+        .exfiltration-node.transfer {
+            background: rgba(255, 0, 0, 0.1);
+            border-color: #ff0000;
+        }
+        
+        .exfiltration-node.cleanup {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: #00ffff;
+        }
+        
+        .node-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .node-info h3 {
+            color: #ff6b6b;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .node-info p {
+            font-size: 11px;
+            color: #00ff00;
+            margin: 2px 0;
+        }
+        
+        .node-metrics {
+            text-align: right;
+            font-size: 10px;
+        }
+        
+        .metric {
+            color: #00ffff;
+            margin: 1px 0;
+        }
+        
+        .metric.success {
+            color: #00ff00;
+        }
+        
+        .metric.error {
+            color: #ff0000;
+        }
+        
+        .metric.warning {
+            color: #ffa500;
+        }
+        
+        .tree-connector {
+            position: absolute;
+            left: -15px;
+            top: 50%;
+            width: 10px;
+            height: 2px;
+            background: #00ff00;
+        }
+        
+        .tree-connector::before {
+            content: '';
+            position: absolute;
+            left: -5px;
+            top: -5px;
+            width: 2px;
+            height: 12px;
+            background: #00ff00;
+        }
+        
+        .metrics-panel {
+            width: 200px;
+            background: rgba(0, 0, 0, 0.8);
+            border-left: 2px solid #00ff00;
+            padding: 15px;
+            overflow-y: auto;
+        }
+        
+        .metric-card {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #00ff00;
+            border-radius: 3px;
+            padding: 8px;
+            margin: 5px 0;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ff6b6b;
+        }
+        
+        .metric-label {
+            font-size: 10px;
+            color: #00ff00;
+            margin-top: 2px;
+        }
+        
+        .log-panel {
+            height: 120px;
+            background: rgba(0, 0, 0, 0.9);
+            border-top: 1px solid #333;
+            padding: 10px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            font-size: 10px;
+            margin: 1px 0;
+            padding: 2px 5px;
+            border-radius: 2px;
+        }
+        
+        .log-info { background: rgba(0, 150, 255, 0.2); }
+        .log-success { background: rgba(0, 255, 0, 0.2); }
+        .log-warning { background: rgba(255, 165, 0, 0.2); }
+        .log-error { background: rgba(255, 0, 0, 0.2); }
+        
+        .status {
+            text-align: center;
+            padding: 5px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status.running {
+            color: #ff6b6b;
+            animation: blink 1s infinite;
+        }
+        
+        .status.completed {
+            color: #00ff00;
+        }
+        
+        .status.paused {
+            color: #ffa500;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        @keyframes glow {
+            from { box-shadow: 0 0 5px #ff6b6b; }
+            to { box-shadow: 0 0 15px #ff6b6b, 0 0 25px #ff6b6b; }
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .exfiltration-stage {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 0, 255, 0.2);
+            border: 1px solid #ff00ff;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-size: 10px;
+            color: #ff00ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📦 AWS S3 Data Exfiltration</h1>
+    </div>
+    
+    <div class="controls">
+        <button class="btn" onclick="startExfiltration()">▶️ Start Exfiltration</button>
+        <button class="btn" onclick="pauseExfiltration()">⏸️ Pause</button>
+        <button class="btn" onclick="resetExfiltration()">🔄 Reset</button>
+    </div>
+    
+    <div class="status" id="status">Ready to start S3 data exfiltration</div>
+    
+    <div class="main-container">
+        <div class="exfiltration-container">
+            <div class="exfiltration-node discovery" id="bucket-discovery">
+                <div class="exfiltration-stage">Discover</div>
+                <div class="node-content">
+                    <div class="node-info">
+                        <h3>🔍 Bucket Discovery</h3>
+                        <p>Enumerate S3 buckets</p>
+                        <p>Find accessible data</p>
+                    </div>
+                    <div class="node-metrics">
+                        <div class="metric">Buckets: 0</div>
+                        <div class="metric">Objects: 0</div>
+                        <div class="metric">Size: 0GB</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="exfiltration-node access" id="permission-check">
+                <div class="exfiltration-stage">Access</div>
+                <div class="tree-connector"></div>
+                <div class="node-content">
+                    <div class="node-info">
+                        <h3>🔐 Permission Check</h3>
+                        <p>Test bucket permissions</p>
+                        <p>Read/Write access</p>
+                    </div>
+                    <div class="node-metrics">
+                        <div class="metric">Readable: 0</div>
+                        <div class="metric">Writable: 0</div>
+                        <div class="metric">Public: 0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="exfiltration-node extraction" id="data-extraction">
+                <div class="exfiltration-stage">Extract</div>
+                <div class="tree-connector"></div>
+                <div class="node-content">
+                    <div class="node-info">
+                        <h3>📥 Data Extraction</h3>
+                        <p>Download sensitive data</p>
+                        <p>PII, credentials, configs</p>
+                    </div>
+                    <div class="node-metrics">
+                        <div class="metric">Files: 0</div>
+                        <div class="metric">Downloaded: 0GB</div>
+                        <div class="metric">Sensitive: 0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="exfiltration-node transfer" id="data-transfer">
+                <div class="exfiltration-stage">Transfer</div>
+                <div class="tree-connector"></div>
+                <div class="node-content">
+                    <div class="node-info">
+                        <h3>🌐 Data Transfer</h3>
+                        <p>Upload to external bucket</p>
+                        <p>Exfiltrate to attacker</p>
+                    </div>
+                    <div class="node-metrics">
+                        <div class="metric">Transferred: 0GB</div>
+                        <div class="metric">Speed: 0MB/s</div>
+                        <div class="metric">Success: 0%</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="exfiltration-node cleanup" id="log-cleanup">
+                <div class="exfiltration-stage">Cleanup</div>
+                <div class="tree-connector"></div>
+                <div class="node-content">
+                    <div class="node-info">
+                        <h3>🧹 Log Cleanup</h3>
+                        <p>Remove access logs</p>
+                        <p>Clear CloudTrail traces</p>
+                    </div>
+                    <div class="node-metrics">
+                        <div class="metric">Logs: Cleared</div>
+                        <div class="metric">Traces: Removed</div>
+                        <div class="metric">Coverage: 0%</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="exfiltration-node cleanup" id="evidence-destruction">
+                <div class="exfiltration-stage">Destroy</div>
+                <div class="tree-connector"></div>
+                <div class="node-content">
+                    <div class="node-info">
+                        <h3>💥 Evidence Destruction</h3>
+                        <p>Delete temporary files</p>
+                        <p>Remove exfiltration tools</p>
+                    </div>
+                    <div class="node-metrics">
+                        <div class="metric">Files: Deleted</div>
+                        <div class="metric">Tools: Removed</div>
+                        <div class="metric">Clean: 0%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="metrics-panel">
+            <div class="metric-card">
+                <div class="metric-value" id="totalBuckets">0</div>
+                <div class="metric-label">Total Buckets</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="accessibleBuckets">0</div>
+                <div class="metric-label">Accessible</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="totalObjects">0</div>
+                <div class="metric-label">Total Objects</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="extractedData">0GB</div>
+                <div class="metric-label">Extracted</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="transferredData">0GB</div>
+                <div class="metric-label">Transferred</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="successRate">0%</div>
+                <div class="metric-label">Success Rate</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="log-panel">
+        <div id="logContainer"></div>
+    </div>
+    
+    <script>
+        let isRunning = false;
+        let isPaused = false;
+        let startTime = 0;
+        let metrics = {
+            totalBuckets: 0,
+            accessibleBuckets: 0,
+            totalObjects: 0,
+            extractedData: 0,
+            transferredData: 0,
+            successRate: 0
+        };
+        
+        const nodes = [
+            'bucket-discovery', 'permission-check', 'data-extraction', 
+            'data-transfer', 'log-cleanup', 'evidence-destruction'
+        ];
+        
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            while (logContainer.children.length > 20) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+        
+        function updateMetrics() {
+            document.getElementById('totalBuckets').textContent = metrics.totalBuckets;
+            document.getElementById('accessibleBuckets').textContent = metrics.accessibleBuckets;
+            document.getElementById('totalObjects').textContent = metrics.totalObjects;
+            document.getElementById('extractedData').textContent = metrics.extractedData + 'GB';
+            document.getElementById('transferredData').textContent = metrics.transferredData + 'GB';
+            document.getElementById('successRate').textContent = metrics.successRate + '%';
+        }
+        
+        function activateNode(nodeId) {
+            const node = document.getElementById(nodeId);
+            if (node) {
+                node.classList.add('active');
+                setTimeout(() => {
+                    node.classList.remove('active');
+                    node.classList.add('completed');
+                }, 2000);
+            }
+        }
+        
+        function updateNodeMetrics(nodeId, metrics) {
+            const node = document.getElementById(nodeId);
+            if (node) {
+                const metricsDiv = node.querySelector('.node-metrics');
+                if (metricsDiv && metrics) {
+                    metricsDiv.innerHTML = '';
+                    Object.entries(metrics).forEach(([key, value]) => {
+                        const metricDiv = document.createElement('div');
+                        metricDiv.className = 'metric';
+                        if (key.includes('Success') && value > 80) metricDiv.className += ' success';
+                        if (key.includes('Sensitive') && value > 0) metricDiv.className += ' error';
+                        if (key.includes('Public') && value > 0) metricDiv.className += ' warning';
+                        metricDiv.textContent = `${key}: ${value}`;
+                        metricsDiv.appendChild(metricDiv);
+                    });
+                }
+            }
+        }
+        
+        async function executeExfiltrationStep(stepIndex) {
+            if (!isRunning || isPaused) return;
+            
+            const nodeId = nodes[stepIndex];
+            const stepNames = [
+                'S3 Bucket Discovery',
+                'Permission Validation',
+                'Sensitive Data Extraction',
+                'Data Transfer to External',
+                'Access Log Cleanup',
+                'Evidence Destruction'
+            ];
+            
+            log(`🔍 Executing: ${stepNames[stepIndex]}`, 'info');
+            activateNode(nodeId);
+            
+            const stepTime = Math.random() * 3 + 2;
+            await new Promise(resolve => setTimeout(resolve, stepTime * 100));
+            
+            if (stepIndex === 0) {
+                metrics.totalBuckets = Math.floor(Math.random() * 15) + 5;
+                metrics.totalObjects = Math.floor(Math.random() * 1000) + 200;
+                updateNodeMetrics(nodeId, {
+                    'Buckets': metrics.totalBuckets,
+                    'Objects': metrics.totalObjects,
+                    'Size': Math.floor(Math.random() * 50) + 10 + 'GB'
+                });
+                log(`🔍 Discovered ${metrics.totalBuckets} buckets with ${metrics.totalObjects} objects`, 'success');
+            }
+            
+            if (stepIndex === 1) {
+                metrics.accessibleBuckets = Math.floor(metrics.totalBuckets * 0.6) + 2;
+                updateNodeMetrics(nodeId, {
+                    'Readable': metrics.accessibleBuckets,
+                    'Writable': Math.floor(Math.random() * 3) + 1,
+                    'Public': Math.floor(Math.random() * 2) + 1
+                });
+                log(`🔐 Found ${metrics.accessibleBuckets} accessible buckets`, 'warning');
+            }
+            
+            if (stepIndex === 2) {
+                metrics.extractedData = Math.floor(Math.random() * 20) + 5;
+                updateNodeMetrics(nodeId, {
+                    'Files': Math.floor(Math.random() * 100) + 50,
+                    'Downloaded': metrics.extractedData + 'GB',
+                    'Sensitive': Math.floor(Math.random() * 20) + 10
+                });
+                log(`📥 Extracted ${metrics.extractedData}GB of sensitive data`, 'error');
+            }
+            
+            if (stepIndex === 3) {
+                metrics.transferredData = Math.floor(metrics.extractedData * 0.8);
+                updateNodeMetrics(nodeId, {
+                    'Transferred': metrics.transferredData + 'GB',
+                    'Speed': Math.floor(Math.random() * 50) + 20 + 'MB/s',
+                    'Success': Math.floor(Math.random() * 20) + 80 + '%'
+                });
+                log(`🌐 Transferred ${metrics.transferredData}GB to external location`, 'success');
+            }
+            
+            if (stepIndex === 4) {
+                updateNodeMetrics(nodeId, {
+                    'Logs': 'Cleared',
+                    'Traces': 'Removed',
+                    'Coverage': Math.floor(Math.random() * 30) + 70 + '%'
+                });
+                log(`🧹 Cleaned access logs and CloudTrail traces`, 'success');
+            }
+            
+            if (stepIndex === 5) {
+                updateNodeMetrics(nodeId, {
+                    'Files': 'Deleted',
+                    'Tools': 'Removed',
+                    'Clean': Math.floor(Math.random() * 20) + 80 + '%'
+                });
+                log(`💥 Destroyed evidence and removed tools`, 'success');
+            }
+            
+            // Calculate success rate
+            metrics.successRate = Math.min(100, 
+                Math.floor((metrics.transferredData / metrics.extractedData) * 100) + 
+                Math.floor(Math.random() * 10)
+            );
+            
+            updateMetrics();
+            log(`✅ Completed: ${stepNames[stepIndex]}`, 'success');
+            
+            if (stepIndex < nodes.length - 1) {
+                setTimeout(() => executeExfiltrationStep(stepIndex + 1), 1000);
+            } else {
+                completeExfiltration();
+            }
+        }
+        
+        function startExfiltration() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            isPaused = false;
+            startTime = Date.now();
+            
+            document.getElementById('status').textContent = 'Starting S3 data exfiltration...';
+            document.getElementById('status').className = 'status running';
+            
+            log('🚀 Starting S3 Data Exfiltration', 'info');
+            executeExfiltrationStep(0);
+        }
+        
+        function pauseExfiltration() {
+            if (!isRunning) return;
+            
+            isPaused = !isPaused;
+            if (isPaused) {
+                document.getElementById('status').textContent = 'Paused';
+                document.getElementById('status').className = 'status paused';
+                log('⏸️ Data exfiltration paused', 'warning');
+            } else {
+                document.getElementById('status').textContent = 'Starting S3 data exfiltration...';
+                document.getElementById('status').className = 'status running';
+                log('▶️ Data exfiltration resumed', 'info');
+            }
+        }
+        
+        function resetExfiltration() {
+            isRunning = false;
+            isPaused = false;
+            startTime = 0;
+            
+            metrics = {
+                totalBuckets: 0,
+                accessibleBuckets: 0,
+                totalObjects: 0,
+                extractedData: 0,
+                transferredData: 0,
+                successRate: 0
+            };
+            
+            document.getElementById('status').textContent = 'Ready to start S3 data exfiltration';
+            document.getElementById('status').className = 'status';
+            
+            nodes.forEach(nodeId => {
+                const node = document.getElementById(nodeId);
+                if (node) {
+                    node.classList.remove('active', 'completed');
+                    const metricsDiv = node.querySelector('.node-metrics');
+                    if (metricsDiv) {
+                        const originalMetrics = getOriginalMetrics(nodeId);
+                        updateNodeMetrics(nodeId, originalMetrics);
+                    }
+                }
+            });
+            
+            updateMetrics();
+            document.getElementById('logContainer').innerHTML = '';
+            log('🔄 Data exfiltration reset', 'info');
+        }
+        
+        function getOriginalMetrics(nodeId) {
+            const originalMetrics = {
+                'bucket-discovery': { 'Buckets': 0, 'Objects': 0, 'Size': '0GB' },
+                'permission-check': { 'Readable': 0, 'Writable': 0, 'Public': 0 },
+                'data-extraction': { 'Files': 0, 'Downloaded': '0GB', 'Sensitive': 0 },
+                'data-transfer': { 'Transferred': '0GB', 'Speed': '0MB/s', 'Success': '0%' },
+                'log-cleanup': { 'Logs': 'Cleared', 'Traces': 'Removed', 'Coverage': '0%' },
+                'evidence-destruction': { 'Files': 'Deleted', 'Tools': 'Removed', 'Clean': '0%' }
+            };
+            return originalMetrics[nodeId] || {};
+        }
+        
+        function completeExfiltration() {
+            isRunning = false;
+            document.getElementById('status').textContent = 'S3 data exfiltration completed!';
+            document.getElementById('status').className = 'status completed';
+            
+            log('✅ S3 Data Exfiltration completed!', 'success');
+            log(`📊 Processed ${metrics.totalBuckets} buckets, extracted ${metrics.extractedData}GB, transferred ${metrics.transferredData}GB`, 'success');
+            log(`🎯 Success rate: ${metrics.successRate}%`, 'info');
+        }
+        
+        updateMetrics();
+        log('🎯 S3 Data Exfiltration ready', 'info');
+    </script>
+</body>
+</html>

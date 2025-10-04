@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Visualizations Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00ff00;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 20px;
+            border-bottom: 2px solid #00ff00;
+            background: rgba(0, 0, 0, 0.8);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        h1 {
+            color: #ff6b6b;
+            text-shadow: 0 0 20px #ff6b6b;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #00ffff;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .main-container {
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .category {
+            margin-bottom: 40px;
+        }
+        
+        .category-title {
+            color: #ff6b6b;
+            font-size: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 0 0 10px #ff6b6b;
+            border-bottom: 1px solid #00ff00;
+            padding-bottom: 10px;
+        }
+        
+        .visualizations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .viz-card {
+            background: rgba(0, 255, 0, 0.05);
+            border: 1px solid #00ff00;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .viz-card:hover {
+            background: rgba(255, 107, 107, 0.1);
+            border-color: #ff6b6b;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+        
+        .viz-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+        
+        .viz-card:hover::before {
+            left: 100%;
+        }
+        
+        .viz-title {
+            color: #ff6b6b;
+            font-size: 16px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .viz-description {
+            color: #00ff00;
+            font-size: 12px;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        
+        .viz-link {
+            display: inline-block;
+            background: #00ff00;
+            color: #000;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+        
+        .viz-link:hover {
+            background: #ff6b6b;
+            transform: scale(1.05);
+        }
+        
+        .status-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #00ff00;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-indicator.active {
+            background: #ff6b6b;
+        }
+        
+        .status-indicator.coming-soon {
+            background: #ffa500;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            border-top: 1px solid #00ff00;
+            background: rgba(0, 0, 0, 0.8);
+            margin-top: 50px;
+        }
+        
+        .footer p {
+            color: #00ffff;
+            font-size: 12px;
+            opacity: 0.7;
+        }
+        
+        .coming-soon {
+            opacity: 0.6;
+        }
+        
+        .coming-soon .viz-link {
+            background: #666;
+            cursor: not-allowed;
+        }
+        
+        .coming-soon .viz-link:hover {
+            background: #666;
+            transform: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔒 Security Visualizations Hub</h1>
+        <p class="subtitle">Interactive Cybersecurity Analysis Tools</p>
+    </div>
+    
+    <div class="main-container">
+        <div class="category">
+            <h2 class="category-title">☁️ AWS Security</h2>
+            <div class="visualizations-grid">
+                <div class="viz-card">
+                    <div class="status-indicator active"></div>
+                    <h3 class="viz-title">🏢 AWS Organization Tree</h3>
+                    <p class="viz-description">Interactive visualization of AWS account organization hierarchy with real-time discovery simulation.</p>
+                    <a href="aws/aws-account-organization-tree.html" class="viz-link">Launch Visualization</a>
+                </div>
+                
+                <div class="viz-card">
+                    <div class="status-indicator active"></div>
+                    <h3 class="viz-title">🔐 IAM Permission Matrix</h3>
+                    <p class="viz-description">Comprehensive analysis of AWS IAM permissions and privilege escalation risks.</p>
+                    <a href="aws/aws-iam-permission-matrix.html" class="viz-link">Launch Visualization</a>
+                </div>
+                
+                <div class="viz-card">
+                    <div class="status-indicator active"></div>
+                    <h3 class="viz-title">🔗 Cross-Account Access</h3>
+                    <p class="viz-description">Visual mapping of cross-account access patterns and trust relationships.</p>
+                    <a href="aws/aws-cross-account-access.html" class="viz-link">Launch Visualization</a>
+                </div>
+                
+                <div class="viz-card">
+                    <div class="status-indicator active"></div>
+                    <h3 class="viz-title">🔧 Lambda Backdoor Flow</h3>
+                    <p class="viz-description">Analysis of Lambda function execution flows and potential backdoor vectors.</p>
+                    <a href="aws/aws-lambda-backdoor-flow.html" class="viz-link">Launch Visualization</a>
+                </div>
+                
+                <div class="viz-card">
+                    <div class="status-indicator active"></div>
+                    <h3 class="viz-title">📦 S3 Data Exfiltration</h3>
+                    <p class="viz-description">S3 bucket access patterns and data exfiltration risk assessment.</p>
+                    <a href="aws/aws-s3-data-exfiltration.html" class="viz-link">Launch Visualization</a>
+                </div>
+                
+                <div class="viz-card">
+                    <div class="status-indicator active"></div>
+                    <h3 class="viz-title">🔗 Service Dependencies</h3>
+                    <p class="viz-description">AWS service dependency mapping and attack surface analysis.</p>
+                    <a href="aws/aws-service-dependencies.html" class="viz-link">Launch Visualization</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="category">
+            <h2 class="category-title">🎯 APT Groups</h2>
+            <div class="visualizations-grid">
+                <div class="viz-card coming-soon">
+                    <div class="status-indicator coming-soon"></div>
+                    <h3 class="viz-title">🕵️ APT Activity Timeline</h3>
+                    <p class="viz-description">Timeline visualization of Advanced Persistent Threat group activities and campaigns.</p>
+                    <a href="#" class="viz-link">Coming Soon</a>
+                </div>
+                
+                <div class="viz-card coming-soon">
+                    <div class="status-indicator coming-soon"></div>
+                    <h3 class="viz-title">🌐 Threat Actor Network</h3>
+                    <p class="viz-description">Network visualization of threat actor relationships and infrastructure.</p>
+                    <a href="#" class="viz-link">Coming Soon</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="category">
+            <h2 class="category-title">🛡️ Blue Team</h2>
+            <div class="visualizations-grid">
+                <div class="viz-card coming-soon">
+                    <div class="status-indicator coming-soon"></div>
+                    <h3 class="viz-title">📊 Security Metrics Dashboard</h3>
+                    <p class="viz-description">Real-time security metrics and incident response visualization.</p>
+                    <a href="#" class="viz-link">Coming Soon</a>
+                </div>
+                
+                <div class="viz-card coming-soon">
+                    <div class="status-indicator coming-soon"></div>
+                    <h3 class="viz-title">🔍 Threat Hunting Interface</h3>
+                    <p class="viz-description">Interactive threat hunting and investigation tools.</p>
+                    <a href="#" class="viz-link">Coming Soon</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="category">
+            <h2 class="category-title">⚔️ Red Team</h2>
+            <div class="visualizations-grid">
+                <div class="viz-card coming-soon">
+                    <div class="status-indicator coming-soon"></div>
+                    <h3 class="viz-title">🎯 Attack Path Analysis</h3>
+                    <p class="viz-description">Visualization of attack paths and penetration testing scenarios.</p>
+                    <a href="#" class="viz-link">Coming Soon</a>
+                </div>
+                
+                <div class="viz-card coming-soon">
+                    <div class="status-indicator coming-soon"></div>
+                    <h3 class="viz-title">🔓 Vulnerability Mapping</h3>
+                    <p class="viz-description">Interactive vulnerability assessment and exploitation mapping.</p>
+                    <a href="#" class="viz-link">Coming Soon</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="category">
+            <h2 class="category-title">🔍 Forensics</h2>
+            <div class="visualizations-grid">
+                <div class="viz-card coming-soon">
+                    <div class="status-indicator coming-soon"></div>
+                    <h3 class="viz-title">📱 Digital Forensics Timeline</h3>
+                    <p class="viz-description">Timeline analysis of digital forensics evidence and artifacts.</p>
+                    <a href="#" class="viz-link">Coming Soon</a>
+                </div>
+                
+                <div class="viz-card coming-soon">
+                    <div class="status-indicator coming-soon"></div>
+                    <h3 class="viz-title">🕵️ Evidence Correlation</h3>
+                    <p class="viz-description">Correlation analysis of forensic evidence across multiple sources.</p>
+                    <a href="#" class="viz-link">Coming Soon</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="category">
+            <h2 class="category-title">🦠 Malware Analysis</h2>
+            <div class="visualizations-grid">
+                <div class="viz-card coming-soon">
+                    <div class="status-indicator coming-soon"></div>
+                    <h3 class="viz-title">🧬 Malware Family Tree</h3>
+                    <p class="viz-description">Evolutionary tree of malware families and variants.</p>
+                    <a href="#" class="viz-link">Coming Soon</a>
+                </div>
+                
+                <div class="viz-card coming-soon">
+                    <div class="status-indicator coming-soon"></div>
+                    <h3 class="viz-title">🔬 Behavior Analysis</h3>
+                    <p class="viz-description">Interactive malware behavior analysis and sandbox results.</p>
+                    <a href="#" class="viz-link">Coming Soon</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="category">
+            <h2 class="category-title">🌐 Network Security</h2>
+            <div class="visualizations-grid">
+                <div class="viz-card coming-soon">
+                    <div class="status-indicator coming-soon"></div>
+                    <h3 class="viz-title">🌍 Network Topology</h3>
+                    <p class="viz-description">Interactive network topology and traffic flow visualization.</p>
+                    <a href="#" class="viz-link">Coming Soon</a>
+                </div>
+                
+                <div class="viz-card coming-soon">
+                    <div class="status-indicator coming-soon"></div>
+                    <h3 class="viz-title">🚨 Intrusion Detection</h3>
+                    <p class="viz-description">Real-time intrusion detection and network monitoring dashboard.</p>
+                    <a href="#" class="viz-link">Coming Soon</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="category">
+            <h2 class="category-title">🔧 Miscellaneous</h2>
+            <div class="visualizations-grid">
+                <div class="viz-card coming-soon">
+                    <div class="status-indicator coming-soon"></div>
+                    <h3 class="viz-title">📈 Security Trends</h3>
+                    <p class="viz-description">Security trend analysis and threat landscape visualization.</p>
+                    <a href="#" class="viz-link">Coming Soon</a>
+                </div>
+                
+                <div class="viz-card coming-soon">
+                    <div class="status-indicator coming-soon"></div>
+                    <h3 class="viz-title">🎲 Random Security Tools</h3>
+                    <p class="viz-description">Collection of miscellaneous security analysis tools.</p>
+                    <a href="#" class="viz-link">Coming Soon</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>🔒 Security Visualizations Hub - Interactive Cybersecurity Analysis Tools</p>
+        <p>Built with ❤️ for the security community</p>
+    </div>
+</body>
+</html>

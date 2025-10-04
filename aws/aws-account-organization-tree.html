@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Account Organization Tree</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00ff00;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 10px;
+            border-bottom: 2px solid #00ff00;
+            background: rgba(0, 0, 0, 0.8);
+        }
+        
+        h1 {
+            color: #ff6b6b;
+            text-shadow: 0 0 10px #ff6b6b;
+            font-size: 18px;
+        }
+        
+        .controls {
+            text-align: center;
+            padding: 10px;
+            border-bottom: 1px solid #00ff00;
+        }
+        
+        .btn {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            margin: 0 5px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #ff6b6b;
+            transform: scale(1.05);
+        }
+        
+        .main-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        .tree-container {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .org-node {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 8px 0;
+            position: relative;
+            animation: pulse 2s infinite;
+            transition: all 0.3s;
+        }
+        
+        .org-node.active {
+            background: rgba(255, 107, 107, 0.2);
+            border-color: #ff6b6b;
+            animation: glow 1s infinite alternate;
+            transform: scale(1.02);
+        }
+        
+        .org-node.completed {
+            background: rgba(0, 255, 0, 0.3);
+            border-color: #00ff00;
+        }
+        
+        .org-node.master {
+            background: rgba(255, 0, 255, 0.1);
+            border-color: #ff00ff;
+        }
+        
+        .org-node.member {
+            background: rgba(0, 150, 255, 0.1);
+            border-color: #0096ff;
+        }
+        
+        .org-node.suspended {
+            background: rgba(255, 0, 0, 0.1);
+            border-color: #ff0000;
+            opacity: 0.6;
+        }
+        
+        .node-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .node-info h3 {
+            color: #ff6b6b;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .node-info p {
+            font-size: 11px;
+            color: #00ff00;
+            margin: 2px 0;
+        }
+        
+        .node-metrics {
+            text-align: right;
+            font-size: 10px;
+        }
+        
+        .metric {
+            color: #00ffff;
+            margin: 1px 0;
+        }
+        
+        .metric.success {
+            color: #00ff00;
+        }
+        
+        .metric.error {
+            color: #ff0000;
+        }
+        
+        .tree-connector {
+            position: absolute;
+            left: -15px;
+            top: 50%;
+            width: 10px;
+            height: 2px;
+            background: #00ff00;
+        }
+        
+        .tree-connector::before {
+            content: '';
+            position: absolute;
+            left: -5px;
+            top: -5px;
+            width: 2px;
+            height: 12px;
+            background: #00ff00;
+        }
+        
+        .metrics-panel {
+            width: 200px;
+            background: rgba(0, 0, 0, 0.8);
+            border-left: 2px solid #00ff00;
+            padding: 15px;
+            overflow-y: auto;
+        }
+        
+        .metric-card {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #00ff00;
+            border-radius: 3px;
+            padding: 8px;
+            margin: 5px 0;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ff6b6b;
+        }
+        
+        .metric-label {
+            font-size: 10px;
+            color: #00ff00;
+            margin-top: 2px;
+        }
+        
+        .log-panel {
+            height: 120px;
+            background: rgba(0, 0, 0, 0.9);
+            border-top: 1px solid #333;
+            padding: 10px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            font-size: 10px;
+            margin: 1px 0;
+            padding: 2px 5px;
+            border-radius: 2px;
+        }
+        
+        .log-info { background: rgba(0, 150, 255, 0.2); }
+        .log-success { background: rgba(0, 255, 0, 0.2); }
+        .log-warning { background: rgba(255, 165, 0, 0.2); }
+        .log-error { background: rgba(255, 0, 0, 0.2); }
+        
+        .status {
+            text-align: center;
+            padding: 5px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status.running {
+            color: #ff6b6b;
+            animation: blink 1s infinite;
+        }
+        
+        .status.completed {
+            color: #00ff00;
+        }
+        
+        .status.paused {
+            color: #ffa500;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        @keyframes glow {
+            from { box-shadow: 0 0 5px #ff6b6b; }
+            to { box-shadow: 0 0 15px #ff6b6b, 0 0 25px #ff6b6b; }
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .account-type {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 0, 255, 0.2);
+            border: 1px solid #ff00ff;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-size: 10px;
+            color: #ff00ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏢 AWS Organization Hierarchy</h1>
+    </div>
+    
+    <div class="controls">
+        <button class="btn" onclick="startDiscovery()">▶️ Discover Org</button>
+        <button class="btn" onclick="pauseDiscovery()">⏸️ Pause</button>
+        <button class="btn" onclick="resetDiscovery()">🔄 Reset</button>
+    </div>
+    
+    <div class="status" id="status">Ready to discover AWS organization</div>
+    
+    <div class="main-container">
+        <div class="tree-container">
+            <div class="org-node master" id="master-account">
+                <div class="account-type">Master</div>
+                <div class="node-content">
+                    <div class="node-info">
+                        <h3>🎯 Master Account</h3>
+                        <p>Organization Root</p>
+                        <p>Account: 123456789012</p>
+                    </div>
+                    <div class="node-metrics">
+                        <div class="metric">Status: Active</div>
+                        <div class="metric">OU: Root</div>
+                        <div class="metric">Policies: 0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="org-node member" id="prod-account">
+                <div class="account-type">Production</div>
+                <div class="tree-connector"></div>
+                <div class="node-content">
+                    <div class="node-info">
+                        <h3>🏭 Production Account</h3>
+                        <p>Production workloads</p>
+                        <p>Account: 234567890123</p>
+                    </div>
+                    <div class="node-metrics">
+                        <div class="metric">Status: Active</div>
+                        <div class="metric">OU: Production</div>
+                        <div class="metric">Resources: 0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="org-node member" id="dev-account">
+                <div class="account-type">Development</div>
+                <div class="tree-connector"></div>
+                <div class="node-content">
+                    <div class="node-info">
+                        <h3>💻 Development Account</h3>
+                        <p>Dev/Test environment</p>
+                        <p>Account: 345678901234</p>
+                    </div>
+                    <div class="node-metrics">
+                        <div class="metric">Status: Active</div>
+                        <div class="metric">OU: Development</div>
+                        <div class="metric">Resources: 0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="org-node member" id="staging-account">
+                <div class="account-type">Staging</div>
+                <div class="tree-connector"></div>
+                <div class="node-content">
+                    <div class="node-info">
+                        <h3>🧪 Staging Account</h3>
+                        <p>Pre-production testing</p>
+                        <p>Account: 456789012345</p>
+                    </div>
+                    <div class="node-metrics">
+                        <div class="metric">Status: Active</div>
+                        <div class="metric">OU: Staging</div>
+                        <div class="metric">Resources: 0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="org-node member" id="security-account">
+                <div class="account-type">Security</div>
+                <div class="tree-connector"></div>
+                <div class="node-content">
+                    <div class="node-info">
+                        <h3>🛡️ Security Account</h3>
+                        <p>Security services</p>
+                        <p>Account: 567890123456</p>
+                    </div>
+                    <div class="node-metrics">
+                        <div class="metric">Status: Active</div>
+                        <div class="metric">OU: Security</div>
+                        <div class="metric">Resources: 0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="org-node suspended" id="suspended-account">
+                <div class="account-type">Suspended</div>
+                <div class="tree-connector"></div>
+                <div class="node-content">
+                    <div class="node-info">
+                        <h3>⚠️ Suspended Account</h3>
+                        <p>Compliance violation</p>
+                        <p>Account: 678901234567</p>
+                    </div>
+                    <div class="node-metrics">
+                        <div class="metric error">Status: Suspended</div>
+                        <div class="metric">OU: Compliance</div>
+                        <div class="metric">Resources: 0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="metrics-panel">
+            <div class="metric-card">
+                <div class="metric-value" id="totalAccounts">0</div>
+                <div class="metric-label">Total Accounts</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="activeAccounts">0</div>
+                <div class="metric-label">Active</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="suspendedAccounts">0</div>
+                <div class="metric-label">Suspended</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="organizationalUnits">0</div>
+                <div class="metric-label">OUs</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="scpPolicies">0</div>
+                <div class="metric-label">SCP Policies</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="crossAccountRoles">0</div>
+                <div class="metric-label">Cross-Account Roles</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="log-panel">
+        <div id="logContainer"></div>
+    </div>
+    
+    <script>
+        let isRunning = false;
+        let isPaused = false;
+        let startTime = 0;
+        let metrics = {
+            totalAccounts: 0,
+            activeAccounts: 0,
+            suspendedAccounts: 0,
+            organizationalUnits: 0,
+            scpPolicies: 0,
+            crossAccountRoles: 0
+        };
+        
+        const nodes = [
+            'master-account', 'prod-account', 'dev-account', 
+            'staging-account', 'security-account', 'suspended-account'
+        ];
+        
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            while (logContainer.children.length > 20) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+        
+        function updateMetrics() {
+            document.getElementById('totalAccounts').textContent = metrics.totalAccounts;
+            document.getElementById('activeAccounts').textContent = metrics.activeAccounts;
+            document.getElementById('suspendedAccounts').textContent = metrics.suspendedAccounts;
+            document.getElementById('organizationalUnits').textContent = metrics.organizationalUnits;
+            document.getElementById('scpPolicies').textContent = metrics.scpPolicies;
+            document.getElementById('crossAccountRoles').textContent = metrics.crossAccountRoles;
+        }
+        
+        function activateNode(nodeId) {
+            const node = document.getElementById(nodeId);
+            if (node) {
+                node.classList.add('active');
+                setTimeout(() => {
+                    node.classList.remove('active');
+                    node.classList.add('completed');
+                }, 2000);
+            }
+        }
+        
+        function updateNodeMetrics(nodeId, metrics) {
+            const node = document.getElementById(nodeId);
+            if (node) {
+                const metricsDiv = node.querySelector('.node-metrics');
+                if (metricsDiv && metrics) {
+                    metricsDiv.innerHTML = '';
+                    Object.entries(metrics).forEach(([key, value]) => {
+                        const metricDiv = document.createElement('div');
+                        metricDiv.className = 'metric';
+                        if (key.includes('Status') && value === 'Active') metricDiv.className += ' success';
+                        if (key.includes('Status') && value === 'Suspended') metricDiv.className += ' error';
+                        metricDiv.textContent = `${key}: ${value}`;
+                        metricsDiv.appendChild(metricDiv);
+                    });
+                }
+            }
+        }
+        
+        async function executeDiscoveryStep(stepIndex) {
+            if (!isRunning || isPaused) return;
+            
+            const nodeId = nodes[stepIndex];
+            const stepNames = [
+                'Master Account Discovery',
+                'Production Account Analysis',
+                'Development Account Analysis',
+                'Staging Account Analysis',
+                'Security Account Analysis',
+                'Suspended Account Detection'
+            ];
+            
+            log(`🔍 Analyzing: ${stepNames[stepIndex]}`, 'info');
+            activateNode(nodeId);
+            
+            const stepTime = Math.random() * 3 + 2;
+            await new Promise(resolve => setTimeout(resolve, stepTime * 100));
+            
+            if (stepIndex === 0) {
+                metrics.totalAccounts = 1;
+                metrics.activeAccounts = 1;
+                metrics.organizationalUnits = 1;
+                updateNodeMetrics(nodeId, {
+                    'Status': 'Active',
+                    'OU': 'Root',
+                    'Policies': Math.floor(Math.random() * 5) + 3
+                });
+                log(`🎯 Master account discovered with ${metrics.organizationalUnits} OU`, 'success');
+            }
+            
+            if (stepIndex === 1) {
+                metrics.totalAccounts++;
+                metrics.activeAccounts++;
+                metrics.organizationalUnits++;
+                updateNodeMetrics(nodeId, {
+                    'Status': 'Active',
+                    'OU': 'Production',
+                    'Resources': Math.floor(Math.random() * 50) + 20
+                });
+                log(`🏭 Production account found with ${metrics.activeAccounts} total active accounts`, 'success');
+            }
+            
+            if (stepIndex === 2) {
+                metrics.totalAccounts++;
+                metrics.activeAccounts++;
+                metrics.organizationalUnits++;
+                updateNodeMetrics(nodeId, {
+                    'Status': 'Active',
+                    'OU': 'Development',
+                    'Resources': Math.floor(Math.random() * 30) + 10
+                });
+                log(`💻 Development account discovered`, 'success');
+            }
+            
+            if (stepIndex === 3) {
+                metrics.totalAccounts++;
+                metrics.activeAccounts++;
+                metrics.organizationalUnits++;
+                updateNodeMetrics(nodeId, {
+                    'Status': 'Active',
+                    'OU': 'Staging',
+                    'Resources': Math.floor(Math.random() * 25) + 5
+                });
+                log(`🧪 Staging account found`, 'success');
+            }
+            
+            if (stepIndex === 4) {
+                metrics.totalAccounts++;
+                metrics.activeAccounts++;
+                metrics.organizationalUnits++;
+                metrics.scpPolicies = Math.floor(Math.random() * 10) + 5;
+                updateNodeMetrics(nodeId, {
+                    'Status': 'Active',
+                    'OU': 'Security',
+                    'Resources': Math.floor(Math.random() * 15) + 8
+                });
+                log(`🛡️ Security account with ${metrics.scpPolicies} SCP policies`, 'success');
+            }
+            
+            if (stepIndex === 5) {
+                metrics.totalAccounts++;
+                metrics.suspendedAccounts++;
+                updateNodeMetrics(nodeId, {
+                    'Status': 'Suspended',
+                    'OU': 'Compliance',
+                    'Resources': 0
+                });
+                log(`⚠️ Suspended account detected - compliance violation`, 'warning');
+            }
+            
+            updateMetrics();
+            log(`✅ Completed: ${stepNames[stepIndex]}`, 'success');
+            
+            if (stepIndex < nodes.length - 1) {
+                setTimeout(() => executeDiscoveryStep(stepIndex + 1), 1000);
+            } else {
+                completeDiscovery();
+            }
+        }
+        
+        function startDiscovery() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            isPaused = false;
+            startTime = Date.now();
+            
+            document.getElementById('status').textContent = 'Discovering AWS organization...';
+            document.getElementById('status').className = 'status running';
+            
+            log('🚀 Starting AWS Organization Discovery', 'info');
+            executeDiscoveryStep(0);
+        }
+        
+        function pauseDiscovery() {
+            if (!isRunning) return;
+            
+            isPaused = !isPaused;
+            if (isPaused) {
+                document.getElementById('status').textContent = 'Paused';
+                document.getElementById('status').className = 'status paused';
+                log('⏸️ Organization discovery paused', 'warning');
+            } else {
+                document.getElementById('status').textContent = 'Discovering AWS organization...';
+                document.getElementById('status').className = 'status running';
+                log('▶️ Organization discovery resumed', 'info');
+            }
+        }
+        
+        function resetDiscovery() {
+            isRunning = false;
+            isPaused = false;
+            startTime = 0;
+            
+            metrics = {
+                totalAccounts: 0,
+                activeAccounts: 0,
+                suspendedAccounts: 0,
+                organizationalUnits: 0,
+                scpPolicies: 0,
+                crossAccountRoles: 0
+            };
+            
+            document.getElementById('status').textContent = 'Ready to discover AWS organization';
+            document.getElementById('status').className = 'status';
+            
+            nodes.forEach(nodeId => {
+                const node = document.getElementById(nodeId);
+                if (node) {
+                    node.classList.remove('active', 'completed');
+                    const metricsDiv = node.querySelector('.node-metrics');
+                    if (metricsDiv) {
+                        const originalMetrics = getOriginalMetrics(nodeId);
+                        updateNodeMetrics(nodeId, originalMetrics);
+                    }
+                }
+            });
+            
+            updateMetrics();
+            document.getElementById('logContainer').innerHTML = '';
+            log('🔄 Organization discovery reset', 'info');
+        }
+        
+        function getOriginalMetrics(nodeId) {
+            const originalMetrics = {
+                'master-account': { 'Status': 'Active', 'OU': 'Root', 'Policies': 0 },
+                'prod-account': { 'Status': 'Active', 'OU': 'Production', 'Resources': 0 },
+                'dev-account': { 'Status': 'Active', 'OU': 'Development', 'Resources': 0 },
+                'staging-account': { 'Status': 'Active', 'OU': 'Staging', 'Resources': 0 },
+                'security-account': { 'Status': 'Active', 'OU': 'Security', 'Resources': 0 },
+                'suspended-account': { 'Status': 'Suspended', 'OU': 'Compliance', 'Resources': 0 }
+            };
+            return originalMetrics[nodeId] || {};
+        }
+        
+        function completeDiscovery() {
+            isRunning = false;
+            document.getElementById('status').textContent = 'Organization discovery completed!';
+            document.getElementById('status').className = 'status completed';
+            
+            log('✅ AWS Organization Discovery completed!', 'success');
+            log(`📊 Found ${metrics.totalAccounts} accounts: ${metrics.activeAccounts} active, ${metrics.suspendedAccounts} suspended`, 'success');
+            log(`🏢 Organization Units: ${metrics.organizationalUnits}, SCP Policies: ${metrics.scpPolicies}`, 'success');
+        }
+        
+        updateMetrics();
+        log('🎯 AWS Organization Discovery ready', 'info');
+    </script>
+</body>
+</html>
