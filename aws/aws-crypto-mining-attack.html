@@ -680,21 +680,42 @@
         
         function startProfitCalculation() {
             log(`💰 Starting profit calculation...`, 'info');
+            log(`📅 Simulating mining days...`, 'info');
             
-            // Мгновенный расчет прибыли без анимации
+            // Быстрая анимация расчета прибыли по дням
+            let day = 0;
+            let totalProfit = 0;
             const dailyProfit = metrics.hashrate * 0.15; // Примерная прибыль в день
-            const maxDays = 30; // 30 дней майнинга
-            const totalProfit = dailyProfit * maxDays; // Общая прибыль
+            const maxDays = 30; // Симулируем 30 дней
             
-            // Устанавливаем финальные значения сразу
-            metrics.estimatedProfit = totalProfit;
-            metrics.roi = maxDays;
-            updateMetrics();
-            
-            log(`💰 Profit calculation complete: $${totalProfit.toFixed(2)} total profit`, 'success');
-            log(`📊 ROI: ${metrics.roi} days of mining completed - инстанс украден бесплатно!`, 'success');
-            log(`🎯 Mining operation fully operational!`, 'success');
-            log(`🕵️ Stealth mode active: майнинг работает незаметно, имитируя легитимные задачи`, 'success');
+            const profitInterval = setInterval(() => {
+                day++;
+                totalProfit += dailyProfit;
+                
+                // Обновляем метрики
+                metrics.estimatedProfit = totalProfit;
+                metrics.roi = day; // Показываем текущий день
+                updateMetrics();
+                
+                // Логируем прогресс каждые 5 дней
+                if (day % 5 === 0) {
+                    log(`📅 Day ${day}: Total profit $${totalProfit.toFixed(2)}`, 'info');
+                }
+                
+                if (day >= maxDays) {
+                    clearInterval(profitInterval);
+                    
+                    // Финальные расчеты
+                    metrics.estimatedProfit = totalProfit;
+                    metrics.roi = maxDays; // Показываем общее количество дней майнинга
+                    
+                    updateMetrics();
+                    log(`💰 Profit calculation complete: $${totalProfit.toFixed(2)} total profit`, 'success');
+                    log(`📊 ROI: ${metrics.roi} days of mining completed - инстанс украден бесплатно!`, 'success');
+                    log(`🎯 Mining operation fully operational!`, 'success');
+                    log(`🕵️ Stealth mode active: майнинг работает незаметно, имитируя легитимные задачи`, 'success');
+                }
+            }, 50); // Быстро - каждый день = 50мс
         }
         
         function updateMetrics() {
