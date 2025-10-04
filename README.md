@@ -42,27 +42,6 @@ Interactive cybersecurity analysis tools and visualizations built with modern we
 - Network Security
 - Miscellaneous tools
 
-## 🛠️ Getting Started
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/n3m351d4/33514SEC.git
-   cd 33514SEC
-   ```
-
-2. **Open in browser**:
-   ```bash
-   # Using Python
-   python -m http.server 8000
-   
-   # Using Node.js
-   npx serve .
-   
-   # Or simply open index.html in your browser
-   ```
-
-3. **Navigate to**: `http://localhost:8000`
-
 ## 🎨 Design Philosophy
 
 This project follows a **cyberpunk/hacker aesthetic** with:
