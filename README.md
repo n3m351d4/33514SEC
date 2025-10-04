@@ -49,32 +49,6 @@ This project follows a **cyberpunk/hacker aesthetic** with:
 - Interactive elements with hover effects
 - Real-time data simulation
 
-## 🔧 Technical Details
-
-- **Pure Web Technologies**: HTML5, CSS3, JavaScript ES6+
-- **No External Dependencies**: Self-contained visualizations
-- **Responsive Design**: Mobile-first approach
-- **Modern CSS**: Flexbox, Grid, CSS Variables
-- **Interactive JavaScript**: ES6+ features, async/await
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🤝 Support
-
-If you find this project helpful, please consider:
-- ⭐ Starring the repository
-- 🐛 Reporting bugs
-- 💡 Suggesting new features
-- 🔄 Contributing code
-
-## 🔗 Links
-
-- [Live Demo](https://n3m351d4.github.io/33514SEC/)
-- [Issues](https://github.com/n3m351d4/33514SEC/issues)
-- [Discussions](https://github.com/n3m351d4/33514SEC/discussions)
-
 ---
 
 **Built with ❤️ for the cybersecurity community**
