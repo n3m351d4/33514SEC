@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+            padding: 20px;
+            text-align: center;
+        }
+        .success {
+            color: green;
+            font-size: 24px;
+            margin: 20px 0;
+        }
+        .info {
+            color: #666;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔒 Security Visualizations Hub</h1>
+    <div class="success">✅ Сервер работает!</div>
+    <div class="info">Порт: 8080</div>
+    <div class="info">Статус: HTTP 200 OK</div>
+    <div class="info">Время: <span id="time"></span></div>
+    
+    <h2>Доступные страницы:</h2>
+    <ul style="text-align: left; max-width: 400px; margin: 0 auto;">
+        <li><a href="index.html">Главная страница</a></li>
+        <li><a href="aws/aws-account-organization-tree.html">AWS Organization Tree</a></li>
+        <li><a href="aws/aws-iam-permission-matrix.html">IAM Permission Matrix</a></li>
+        <li><a href="aws/aws-cross-account-access.html">Cross-Account Access</a></li>
+        <li><a href="aws/aws-lambda-backdoor-flow.html">Lambda Backdoor Flow</a></li>
+        <li><a href="aws/aws-s3-data-exfiltration.html">S3 Data Exfiltration</a></li>
+        <li><a href="aws/aws-service-dependencies.html">Service Dependencies</a></li>
+    </ul>
+    
+    <script>
+        document.getElementById('time').textContent = new Date().toLocaleString();
+    </script>
+</body>
+</html>

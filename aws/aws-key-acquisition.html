@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Key Acquisition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00ff00;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 15px;
+            border-bottom: 2px solid #00ff00;
+            background: rgba(0, 0, 0, 0.8);
+        }
+        
+        h1 {
+            color: #ff6b6b;
+            text-shadow: 0 0 10px #ff6b6b;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .info-panel {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 10px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .info-text {
+            font-size: 12px;
+            line-height: 1.4;
+            color: #00ffff;
+        }
+        
+        .info-text strong {
+            color: #ff6b6b;
+        }
+        
+        .main-container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 15px;
+            padding: 15px;
+            overflow: hidden;
+        }
+        
+        .acquisition-method {
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            padding: 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        
+        .acquisition-method:hover {
+            background: rgba(255, 107, 107, 0.2);
+            border-color: #ff6b6b;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+        }
+        
+        .acquisition-method.active {
+            background: rgba(255, 107, 107, 0.3);
+            border-color: #ff6b6b;
+            animation: pulse 2s infinite;
+        }
+        
+        .method-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px currentColor;
+        }
+        
+        .method-title {
+            color: #ff6b6b;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .method-description {
+            font-size: 11px;
+            color: #00ffff;
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+        
+        .method-details {
+            font-size: 10px;
+            color: #00ff00;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #00ff00;
+            width: 100%;
+        }
+        
+        .key-display {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 0, 255, 0.2);
+            border: 1px solid #ff00ff;
+            border-radius: 5px;
+            padding: 5px 8px;
+            font-size: 10px;
+            color: #ff00ff;
+        }
+        
+        .central-panel {
+            grid-column: 1 / -1;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .key-result {
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid #00ff00;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .key-field {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 8px 0;
+            padding: 5px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 3px;
+        }
+        
+        .key-label {
+            color: #ff6b6b;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        
+        .key-value {
+            color: #00ff00;
+            font-family: monospace;
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff0000;
+            margin-right: 8px;
+            animation: blink 1s infinite;
+        }
+        
+        .status-indicator.success {
+            background: #00ff00;
+            animation: none;
+        }
+        
+        .controls {
+            text-align: center;
+            padding: 10px;
+            border-top: 1px solid #00ff00;
+            background: rgba(0, 0, 0, 0.8);
+        }
+        
+        .btn {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            margin: 0 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #ff6b6b;
+            transform: scale(1.05);
+        }
+        
+        .btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.02); }
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+        
+        .log-panel {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            width: 300px;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 10px;
+        }
+        
+        .log-entry {
+            margin: 2px 0;
+            padding: 2px 5px;
+            border-radius: 2px;
+        }
+        
+        .log-info { background: rgba(0, 150, 255, 0.2); }
+        .log-success { background: rgba(0, 255, 0, 0.2); }
+        .log-warning { background: rgba(255, 165, 0, 0.2); }
+        .log-error { background: rgba(255, 0, 0, 0.2); }
+        
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 2px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff00, #ff6b6b);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔑 AWS Key Acquisition</h1>
+        <div class="info-panel">
+            <div class="info-text">
+                <strong>🎯 Цель:</strong> Получение AWS Access Key и Secret Key для несанкционированного доступа<br>
+                <strong>🔍 Методы:</strong> Социальная инженерия, фишинг, компрометация учетных записей<br>
+                <strong>⚡ Действие:</strong> Выберите метод атаки и получите ключи доступа<br>
+                <strong>📊 Результат:</strong> Получение полного доступа к AWS ресурсам жертвы
+            </div>
+        </div>
+    </div>
+    
+    <div class="main-container">
+        <div class="acquisition-method" id="method-1" onclick="selectMethod(1)">
+            <div class="key-display">1</div>
+            <div class="method-icon">📧</div>
+            <div class="method-title">Фишинг Email</div>
+            <div class="method-description">Отправка поддельных писем от AWS для кражи учетных данных</div>
+            <div class="method-details">
+                <div>• Подделка AWS уведомлений</div>
+                <div>• Социальная инженерия</div>
+                <div>• Сбор учетных данных</div>
+            </div>
+        </div>
+        
+        <div class="acquisition-method" id="method-2" onclick="selectMethod(2)">
+            <div class="key-display">2</div>
+            <div class="method-icon">🌐</div>
+            <div class="method-title">Компрометация сайта</div>
+            <div class="method-description">Взлом веб-приложения для доступа к AWS ключам</div>
+            <div class="method-details">
+                <div>• SQL инъекции</div>
+                <div>• XSS атаки</div>
+                <div>• Доступ к конфигурации</div>
+            </div>
+        </div>
+        
+        <div class="acquisition-method" id="method-3" onclick="selectMethod(3)">
+            <div class="key-display">3</div>
+            <div class="method-icon">💻</div>
+            <div class="method-title">Компрометация системы</div>
+            <div class="method-description">Получение ключей через скомпрометированную рабочую станцию</div>
+            <div class="method-details">
+                <div>• Malware установка</div>
+                <div>• Поиск в файлах</div>
+                <div>• Перехват трафика</div>
+            </div>
+        </div>
+        
+        <div class="acquisition-method" id="method-4" onclick="selectMethod(4)">
+            <div class="key-display">4</div>
+            <div class="method-icon">👥</div>
+            <div class="method-title">Социальная инженерия</div>
+            <div class="method-description">Обман сотрудников для получения доступа к учетным данным</div>
+            <div class="method-details">
+                <div>• Имитация IT поддержки</div>
+                <div>• Претекстинг</div>
+                <div>• Психологическое воздействие</div>
+            </div>
+        </div>
+        
+        <div class="central-panel">
+            <h3 style="color: #ff6b6b; margin-bottom: 15px;">🔑 Полученные ключи доступа</h3>
+            <div class="key-result" id="keyResult" style="display: none;">
+                <div class="key-field">
+                    <span class="key-label">Access Key ID:</span>
+                    <span class="key-value" id="accessKey">********************</span>
+                </div>
+                <div class="key-field">
+                    <span class="key-label">Secret Access Key:</span>
+                    <span class="key-value" id="secretKey">********************</span>
+                </div>
+                <div class="key-field">
+                    <span class="key-label">Region:</span>
+                    <span class="key-value">us-east-1</span>
+                </div>
+                <div class="key-field">
+                    <span class="key-label">Permissions:</span>
+                    <span class="key-value">Full Access</span>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div id="statusText" style="color: #00ffff; font-size: 12px; margin-top: 10px;">
+                Выберите метод получения ключей
+            </div>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <button class="btn" onclick="startAcquisition()" id="startBtn">🚀 Начать получение ключей</button>
+        <button class="btn" onclick="resetAcquisition()" id="resetBtn">🔄 Сброс</button>
+        <button class="btn" onclick="exportKeys()" id="exportBtn" disabled>📤 Экспорт ключей</button>
+    </div>
+    
+    <div class="log-panel">
+        <div id="logContainer"></div>
+    </div>
+    
+    <script>
+        let selectedMethod = 0;
+        let isRunning = false;
+        let progress = 0;
+        
+        const methods = [
+            { name: 'Фишинг Email', icon: '📧', time: 3000 },
+            { name: 'Компрометация сайта', icon: '🌐', time: 5000 },
+            { name: 'Компрометация системы', icon: '💻', time: 4000 },
+            { name: 'Социальная инженерия', icon: '👥', time: 6000 }
+        ];
+        
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            while (logContainer.children.length > 15) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+        
+        function selectMethod(methodId) {
+            if (isRunning) return;
+            
+            // Remove active class from all methods
+            document.querySelectorAll('.acquisition-method').forEach(method => {
+                method.classList.remove('active');
+            });
+            
+            // Add active class to selected method
+            document.getElementById(`method-${methodId}`).classList.add('active');
+            selectedMethod = methodId;
+            
+            log(`🎯 Выбран метод: ${methods[methodId - 1].name}`, 'info');
+        }
+        
+        async function startAcquisition() {
+            if (selectedMethod === 0) {
+                log('❌ Выберите метод получения ключей', 'error');
+                return;
+            }
+            
+            if (isRunning) return;
+            
+            isRunning = true;
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('resetBtn').disabled = true;
+            
+            const method = methods[selectedMethod - 1];
+            log(`🚀 Начинаем ${method.name}...`, 'info');
+            
+            // Simulate acquisition process
+            const steps = [
+                'Инициализация атаки...',
+                'Подготовка векторов атаки...',
+                'Выполнение атаки...',
+                'Получение учетных данных...',
+                'Валидация ключей...',
+                'Финализация процесса...'
+            ];
+            
+            for (let i = 0; i < steps.length; i++) {
+                progress = ((i + 1) / steps.length) * 100;
+                document.getElementById('progressFill').style.width = progress + '%';
+                document.getElementById('statusText').textContent = steps[i];
+                
+                log(steps[i], 'info');
+                
+                await new Promise(resolve => setTimeout(resolve, method.time / steps.length));
+            }
+            
+            // Generate fake keys
+            const accessKey = 'AKIA' + Math.random().toString(36).substring(2, 22).toUpperCase();
+            const secretKey = Math.random().toString(36).substring(2, 42);
+            
+            document.getElementById('accessKey').textContent = accessKey;
+            document.getElementById('secretKey').textContent = secretKey;
+            document.getElementById('keyResult').style.display = 'block';
+            
+            log(`✅ Ключи успешно получены!`, 'success');
+            log(`🔑 Access Key: ${accessKey}`, 'success');
+            log(`🔐 Secret Key: ${secretKey.substring(0, 8)}...`, 'success');
+            
+            document.getElementById('exportBtn').disabled = false;
+            document.getElementById('statusText').textContent = 'Ключи успешно получены!';
+            document.getElementById('statusText').style.color = '#00ff00';
+            
+            isRunning = false;
+        }
+        
+        function resetAcquisition() {
+            selectedMethod = 0;
+            isRunning = false;
+            progress = 0;
+            
+            document.querySelectorAll('.acquisition-method').forEach(method => {
+                method.classList.remove('active');
+            });
+            
+            document.getElementById('keyResult').style.display = 'none';
+            document.getElementById('progressFill').style.width = '0%';
+            document.getElementById('statusText').textContent = 'Выберите метод получения ключей';
+            document.getElementById('statusText').style.color = '#00ffff';
+            
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('resetBtn').disabled = false;
+            document.getElementById('exportBtn').disabled = true;
+            
+            document.getElementById('logContainer').innerHTML = '';
+            log('🔄 Процесс сброшен', 'info');
+        }
+        
+        function exportKeys() {
+            const accessKey = document.getElementById('accessKey').textContent;
+            const secretKey = document.getElementById('secretKey').textContent;
+            
+            const exportData = `AWS Access Keys:
+Access Key ID: ${accessKey}
+Secret Access Key: ${secretKey}
+Region: us-east-1
+Generated: ${new Date().toLocaleString()}`;
+            
+            const blob = new Blob([exportData], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'aws_keys.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            log('📤 Ключи экспортированы в файл', 'success');
+        }
+        
+        // Initialize
+        log('🔑 AWS Key Acquisition готов к работе', 'info');
+        log('📋 Выберите метод атаки для получения ключей доступа', 'info');
+    </script>
+</body>
+</html>

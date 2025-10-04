@@ -8,12 +8,12 @@ Visit the [main hub](https://yourusername.github.io/Sitevisualizations/) to expl
 
 ## 📊 Available Tools
 
-### AWS Security Visualizations
-- [AWS Organization Tree](aws/aws-account-organization-tree.html) - Interactive AWS account hierarchy
-- [IAM Permission Matrix](aws/aws-iam-permission-matrix.html) - IAM permissions analysis
-- [Cross-Account Access](aws/aws-cross-account-access.html) - Cross-account access patterns
-- [Lambda Backdoor Flow](aws/aws-lambda-backdoor-flow.html) - Lambda function analysis
-- [S3 Data Exfiltration](aws/aws-s3-data-exfiltration.html) - S3 security analysis
+### Malicious Cloud Usage Visualizations
+- [AWS Organization Tree](aws/aws-account-organization-tree.html) - Exploit AWS account hierarchy
+- [IAM Permission Matrix](aws/aws-iam-permission-matrix.html) - Exploit IAM misconfigurations
+- [Cross-Account Access](aws/aws-cross-account-access.html) - Exploit cross-account trust
+- [Lambda Backdoor Flow](aws/aws-lambda-backdoor-flow.html) - Deploy malicious Lambda functions
+- [S3 Data Exfiltration](aws/aws-s3-data-exfiltration.html) - Exploit S3 misconfigurations
 - [Service Dependencies](aws/aws-service-dependencies.html) - AWS service mapping
 
 ## 🎯 Features

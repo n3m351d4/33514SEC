@@ -260,11 +260,95 @@
             font-size: 10px;
             color: #ff00ff;
         }
+        
+        /* Info Panel */
+        .info-panel {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .info-text {
+            font-size: 11px;
+            line-height: 1.4;
+            color: #00ffff;
+        }
+        
+        .info-text strong {
+            color: #ff6b6b;
+        }
+        
+        /* Field Descriptions */
+        .field-description {
+            font-size: 10px;
+            color: #00ffff;
+            margin-top: 8px;
+            padding: 5px;
+            background: rgba(0, 255, 255, 0.1);
+            border-left: 2px solid #00ffff;
+            border-radius: 3px;
+            font-style: italic;
+        }
+        
+        /* Sources Panel */
+        .sources-panel {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 15px;
+            max-width: 400px;
+            z-index: 1000;
+            font-size: 11px;
+        }
+        
+        .sources-panel h4 {
+            color: #ff6b6b;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+        
+        .sources-panel ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .sources-panel li {
+            margin: 5px 0;
+            padding: 3px 0;
+        }
+        
+        .sources-panel a {
+            color: #00ffff;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .sources-panel a:hover {
+            color: #ff6b6b;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>🏢 AWS Organization Hierarchy</h1>
+        <div class="info-panel">
+            <div class="info-text">
+                <strong>🎯 Что это:</strong> Симуляция сканирования AWS организации для поиска уязвимостей<br>
+                <strong>🔍 Процесс:</strong> Последовательный анализ каждого аккаунта и его ресурсов<br>
+                <strong>⚡ Действие:</strong> Нажмите "Discover Org" чтобы запустить сканирование<br>
+                <strong>📊 Результат:</strong> После завершения получите выводы и рекомендации по безопасности
+            </div>
+        </div>
     </div>
     
     <div class="controls">
@@ -282,7 +366,8 @@
                 <div class="node-content">
                     <div class="node-info">
                         <h3>🎯 Master Account</h3>
-                        <p>Organization Root</p>
+                        <div class="field-description">📋 Сканирование корневого аккаунта для обнаружения политик организации и SCP</div>
+                        <p>Корневой аккаунт организации</p>
                         <p>Account: 123456789012</p>
                     </div>
                     <div class="node-metrics">
@@ -299,7 +384,8 @@
                 <div class="node-content">
                     <div class="node-info">
                         <h3>🏭 Production Account</h3>
-                        <p>Production workloads</p>
+                        <div class="field-description">🔍 Анализ продакшн аккаунта на предмет критических ресурсов и уязвимостей</div>
+                        <p>Продакшн рабочие нагрузки</p>
                         <p>Account: 234567890123</p>
                     </div>
                     <div class="node-metrics">
@@ -316,7 +402,8 @@
                 <div class="node-content">
                     <div class="node-info">
                         <h3>💻 Development Account</h3>
-                        <p>Dev/Test environment</p>
+                        <div class="field-description">🧪 Проверка dev аккаунта на предмет тестовых данных и экспериментальных настроек</div>
+                        <p>Dev/Test окружение</p>
                         <p>Account: 345678901234</p>
                     </div>
                     <div class="node-metrics">
@@ -333,7 +420,8 @@
                 <div class="node-content">
                     <div class="node-info">
                         <h3>🧪 Staging Account</h3>
-                        <p>Pre-production testing</p>
+                        <div class="field-description">🎭 Анализ staging аккаунта для поиска копий продакшн данных и конфигураций</div>
+                        <p>Предпродакшн тестирование</p>
                         <p>Account: 456789012345</p>
                     </div>
                     <div class="node-metrics">
@@ -350,7 +438,8 @@
                 <div class="node-content">
                     <div class="node-info">
                         <h3>🛡️ Security Account</h3>
-                        <p>Security services</p>
+                        <div class="field-description">🔒 Сканирование security аккаунта для обнаружения SCP политик и мониторинга</div>
+                        <p>Сервисы безопасности</p>
                         <p>Account: 567890123456</p>
                     </div>
                     <div class="node-metrics">
@@ -367,7 +456,8 @@
                 <div class="node-content">
                     <div class="node-info">
                         <h3>⚠️ Suspended Account</h3>
-                        <p>Compliance violation</p>
+                        <div class="field-description">🚨 Обнаружение заблокированного аккаунта - нарушение политик безопасности</div>
+                        <p>Нарушение соответствия</p>
                         <p>Account: 678901234567</p>
                     </div>
                     <div class="node-metrics">
@@ -664,10 +754,53 @@
             log('✅ AWS Organization Discovery completed!', 'success');
             log(`📊 Found ${metrics.totalAccounts} accounts: ${metrics.activeAccounts} active, ${metrics.suspendedAccounts} suspended`, 'success');
             log(`🏢 Organization Units: ${metrics.organizationalUnits}, SCP Policies: ${metrics.scpPolicies}`, 'success');
+            
+            // Добавляем выводы и рекомендации
+            log('', 'info');
+            log('🎯 ВЫВОДЫ И РЕКОМЕНДАЦИИ:', 'warning');
+            log('', 'info');
+            
+            if (metrics.suspendedAccounts > 0) {
+                log('🚨 КРИТИЧНО: Обнаружены заблокированные аккаунты - проверить причины блокировки', 'error');
+            }
+            
+            if (metrics.scpPolicies > 0) {
+                log('✅ ХОРОШО: Найдены SCP политики - организация использует централизованное управление', 'success');
+            } else {
+                log('⚠️ ВНИМАНИЕ: Отсутствуют SCP политики - рассмотреть внедрение централизованного контроля', 'warning');
+            }
+            
+            if (metrics.totalAccounts > 5) {
+                log('📈 МАСШТАБ: Большая организация - критично важно централизованное управление', 'info');
+            }
+            
+            log('', 'info');
+            log('🔧 СЛЕДУЮЩИЕ ШАГИ:', 'warning');
+            log('1. Проверить политики SCP на предмет избыточных ограничений', 'info');
+            log('2. Анализировать межаккаунтные роли и доверительные отношения', 'info');
+            log('3. Проверить соответствие политикам безопасности', 'info');
+            log('4. Рассмотреть внедрение дополнительных SCP политик', 'info');
         }
         
         updateMetrics();
         log('🎯 AWS Organization Discovery ready', 'info');
+        log('📋 Алгоритм: 1) Master Account → 2) Production → 3) Development → 4) Staging → 5) Security → 6) Suspended', 'info');
+        log('🔍 Каждый шаг: анализ аккаунта → подсчет ресурсов → обновление метрик → переход к следующему', 'info');
+        log('⚠️ Цель: найти уязвимости в структуре AWS организации и политиках безопасности', 'warning');
+        
+        // Sources panel
+        const sourcesPanel = document.createElement('div');
+        sourcesPanel.className = 'sources-panel';
+        sourcesPanel.innerHTML = `
+            <h4>📚 Источники и инструменты:</h4>
+            <ul>
+                <li><a href="https://github.com/nccgroup/ScoutSuite" target="_blank">🔍 ScoutSuite</a> - Multi-cloud security auditing tool</li>
+                <li><a href="https://github.com/RhinoSecurityLabs/pacu" target="_blank">⚡ Pacu</a> - AWS exploitation framework</li>
+                <li><a href="https://aws.amazon.com/organizations/" target="_blank">🏢 AWS Organizations</a> - Official documentation</li>
+                <li><a href="https://aws.amazon.com/iam/" target="_blank">🔐 AWS IAM</a> - Identity and Access Management</li>
+            </ul>
+        `;
+        document.body.appendChild(sourcesPanel);
     </script>
 </body>
 </html>

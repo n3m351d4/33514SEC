@@ -1,5 +1,7 @@
 # 🔒 Security Visualizations Hub
 
+Simple TTP by n3m351d4
+
 Interactive cybersecurity analysis tools and visualizations built with modern web technologies.
 
 ## 🚀 Features
@@ -16,12 +18,7 @@ Interactive cybersecurity analysis tools and visualizations built with modern we
 Sitevisualizations/
 ├── index.html                 # Main hub page
 ├── aws/                      # AWS security visualizations
-│   ├── aws-account-organization-tree.html
-│   ├── aws-cross-account-access.html
-│   ├── aws-iam-permission-matrix.html
-│   ├── aws-lambda-backdoor-flow.html
-│   ├── aws-s3-data-exfiltration.html
-│   └── aws-service-dependencies.html
+│   └── aws-crypto-mining-attack.html
 ├── apt-groups/               # APT group analysis (coming soon)
 ├── blue-team/                # Blue team tools (coming soon)
 ├── forensics/                # Digital forensics tools (coming soon)
@@ -33,13 +30,8 @@ Sitevisualizations/
 
 ## 🎯 Available Visualizations
 
-### ☁️ AWS Security
-- **AWS Organization Tree**: Interactive visualization of AWS account organization hierarchy
-- **IAM Permission Matrix**: Comprehensive analysis of AWS IAM permissions and privilege escalation risks
-- **Cross-Account Access**: Visual mapping of cross-account access patterns and trust relationships
-- **Lambda Backdoor Flow**: Analysis of Lambda function execution flows and potential backdoor vectors
-- **S3 Data Exfiltration**: S3 bucket access patterns and data exfiltration risk assessment
-- **Service Dependencies**: AWS service dependency mapping and attack surface analysis
+### ☁️ Malicious Cloud Usage
+- **AWS Crypto Mining Attack**: Автоматическая настройка майнинга на AWS с оптимизацией затрат - TTP by n3m351d4
 
 ### 🎯 Coming Soon
 - APT Groups analysis
@@ -116,4 +108,4 @@ If you find this project helpful, please consider:
 
 ---
 
-**Built with ❤️ for the cybersecurity community**
+**Simple TTP by n3m351d4**

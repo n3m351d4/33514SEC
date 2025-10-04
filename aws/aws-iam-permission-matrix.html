@@ -268,11 +268,95 @@
             font-size: 10px;
             color: #ff00ff;
         }
+        
+        /* Info Panel */
+        .info-panel {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .info-text {
+            font-size: 11px;
+            line-height: 1.4;
+            color: #00ffff;
+        }
+        
+        .info-text strong {
+            color: #ff6b6b;
+        }
+        
+        /* Field Descriptions */
+        .field-description {
+            font-size: 10px;
+            color: #00ffff;
+            margin-top: 8px;
+            padding: 5px;
+            background: rgba(0, 255, 255, 0.1);
+            border-left: 2px solid #00ffff;
+            border-radius: 3px;
+            font-style: italic;
+        }
+        
+        /* Sources Panel */
+        .sources-panel {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 15px;
+            max-width: 400px;
+            z-index: 1000;
+            font-size: 11px;
+        }
+        
+        .sources-panel h4 {
+            color: #ff6b6b;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+        
+        .sources-panel ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .sources-panel li {
+            margin: 5px 0;
+            padding: 3px 0;
+        }
+        
+        .sources-panel a {
+            color: #00ffff;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .sources-panel a:hover {
+            color: #ff6b6b;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>🔐 AWS IAM Permission Matrix</h1>
+        <div class="info-panel">
+            <div class="info-text">
+                <strong>🎯 Что это:</strong> Анализ IAM политик и поиск привилегий эскалации<br>
+                <strong>🔍 Процесс:</strong> Проверка каждой политики на уровень риска и количество пользователей<br>
+                <strong>⚡ Действие:</strong> Нажмите "Analyze Permissions" чтобы запустить анализ<br>
+                <strong>📊 Результат:</strong> Получите оценку рисков и конкретные рекомендации по улучшению
+            </div>
+        </div>
     </div>
     
     <div class="controls">
@@ -290,7 +374,8 @@
                 <div class="node-content">
                     <div class="node-info">
                         <h3>👑 AdministratorAccess</h3>
-                        <p>Full AWS access</p>
+                        <div class="field-description">🔥 МАКСИМАЛЬНЫЙ РИСК - полный контроль над всей инфраструктурой</div>
+                        <p>Полный доступ AWS</p>
                         <p>Policy: AdministratorAccess</p>
                     </div>
                     <div class="node-metrics">
@@ -307,7 +392,8 @@
                 <div class="node-content">
                     <div class="node-info">
                         <h3>⚡ IAMFullAccess</h3>
-                        <p>IAM escalation risk</p>
+                        <div class="field-description">💥 КРИТИЧНО - возможность изменения всех ролей и политик</div>
+                        <p>Риск эскалации IAM</p>
                         <p>Policy: IAMFullAccess</p>
                     </div>
                     <div class="node-metrics">
@@ -324,7 +410,8 @@
                 <div class="node-content">
                     <div class="node-info">
                         <h3>🔧 LambdaFullAccess</h3>
-                        <p>Lambda backdoor risk</p>
+                        <div class="field-description">🚨 Высокий риск - возможность создания скрытых функций и бэкдоров</div>
+                        <p>Риск Lambda бэкдора</p>
                         <p>Policy: LambdaFullAccess</p>
                     </div>
                     <div class="node-metrics">
@@ -341,7 +428,8 @@
                 <div class="node-content">
                     <div class="node-info">
                         <h3>🖥️ EC2FullAccess</h3>
-                        <p>EC2 instance access</p>
+                        <div class="field-description">🔧 Возможность создания/изменения серверов - потенциальная эскалация</div>
+                        <p>Доступ к EC2 инстансам</p>
                         <p>Policy: EC2FullAccess</p>
                     </div>
                     <div class="node-metrics">
@@ -358,7 +446,8 @@
                 <div class="node-content">
                     <div class="node-info">
                         <h3>📦 S3FullAccess</h3>
-                        <p>S3 data access</p>
+                        <div class="field-description">⚠️ Риск утечки данных - полный доступ к S3 хранилищам</div>
+                        <p>Доступ к данным S3</p>
                         <p>Policy: S3FullAccess</p>
                     </div>
                     <div class="node-metrics">
@@ -375,7 +464,8 @@
                 <div class="node-content">
                     <div class="node-info">
                         <h3>👁️ ReadOnlyAccess</h3>
-                        <p>View-only permissions</p>
+                        <div class="field-description">✅ Безопасная политика - только чтение без возможности изменений</div>
+                        <p>Только просмотр разрешений</p>
                         <p>Policy: ReadOnlyAccess</p>
                     </div>
                     <div class="node-metrics">
@@ -433,8 +523,8 @@
         };
         
         const nodes = [
-            'admin-policy', 'iam-policy', 'lambda-policy', 
-            'ec2-policy', 's3-policy', 'readonly-policy'
+            'readonly-policy', 's3-policy', 'ec2-policy', 
+            'lambda-policy', 'iam-policy', 'admin-policy'
         ];
         
         function log(message, type = 'info') {
@@ -495,12 +585,12 @@
             
             const nodeId = nodes[stepIndex];
             const stepNames = [
-                'AdministratorAccess Analysis',
-                'IAMFullAccess Risk Assessment',
-                'LambdaFullAccess Backdoor Check',
-                'EC2FullAccess Instance Analysis',
+                'ReadOnlyAccess Security Review',
                 'S3FullAccess Data Risk',
-                'ReadOnlyAccess Security Review'
+                'EC2FullAccess Instance Analysis',
+                'LambdaFullAccess Backdoor Check',
+                'IAMFullAccess Risk Assessment',
+                'AdministratorAccess Analysis'
             ];
             
             log(`🔍 Analyzing: ${stepNames[stepIndex]}`, 'info');
@@ -511,18 +601,47 @@
             
             if (stepIndex === 0) {
                 metrics.totalPolicies++;
-                metrics.adminPolicies++;
-                metrics.totalUsers = Math.floor(Math.random() * 3) + 1;
-                metrics.totalRoles = Math.floor(Math.random() * 2) + 1;
                 updateNodeMetrics(nodeId, {
-                    'Risk': 'Critical',
-                    'Users': metrics.totalUsers,
-                    'Roles': metrics.totalRoles
+                    'Risk': 'Low',
+                    'Users': Math.floor(Math.random() * 5) + 3,
+                    'Roles': Math.floor(Math.random() * 3) + 2
                 });
-                log(`👑 AdministratorAccess found: ${metrics.totalUsers} users, ${metrics.totalRoles} roles`, 'error');
+                log(`👁️ ReadOnlyAccess: Safe permissions detected`, 'success');
             }
             
             if (stepIndex === 1) {
+                metrics.totalPolicies++;
+                updateNodeMetrics(nodeId, {
+                    'Risk': 'Medium',
+                    'Users': Math.floor(Math.random() * 3) + 2,
+                    'Roles': Math.floor(Math.random() * 2) + 1
+                });
+                log(`📦 S3FullAccess: Data access permissions`, 'warning');
+            }
+            
+            if (stepIndex === 2) {
+                metrics.totalPolicies++;
+                metrics.escalationPolicies++;
+                updateNodeMetrics(nodeId, {
+                    'Risk': 'Medium',
+                    'Users': Math.floor(Math.random() * 2) + 1,
+                    'Roles': Math.floor(Math.random() * 2) + 1
+                });
+                log(`🖥️ EC2FullAccess: Instance access detected`, 'warning');
+            }
+            
+            if (stepIndex === 3) {
+                metrics.totalPolicies++;
+                metrics.escalationPolicies++;
+                updateNodeMetrics(nodeId, {
+                    'Risk': 'Medium',
+                    'Users': Math.floor(Math.random() * 2) + 1,
+                    'Roles': Math.floor(Math.random() * 3) + 1
+                });
+                log(`🔧 LambdaFullAccess: Potential backdoor vector`, 'warning');
+            }
+            
+            if (stepIndex === 4) {
                 metrics.totalPolicies++;
                 metrics.escalationPolicies++;
                 metrics.totalUsers += Math.floor(Math.random() * 2) + 1;
@@ -535,46 +654,17 @@
                 log(`⚡ IAMFullAccess detected: High escalation risk`, 'error');
             }
             
-            if (stepIndex === 2) {
-                metrics.totalPolicies++;
-                metrics.escalationPolicies++;
-                updateNodeMetrics(nodeId, {
-                    'Risk': 'Medium',
-                    'Users': Math.floor(Math.random() * 2) + 1,
-                    'Roles': Math.floor(Math.random() * 3) + 1
-                });
-                log(`🔧 LambdaFullAccess: Potential backdoor vector`, 'warning');
-            }
-            
-            if (stepIndex === 3) {
-                metrics.totalPolicies++;
-                metrics.escalationPolicies++;
-                updateNodeMetrics(nodeId, {
-                    'Risk': 'Medium',
-                    'Users': Math.floor(Math.random() * 2) + 1,
-                    'Roles': Math.floor(Math.random() * 2) + 1
-                });
-                log(`🖥️ EC2FullAccess: Instance access detected`, 'warning');
-            }
-            
-            if (stepIndex === 4) {
-                metrics.totalPolicies++;
-                updateNodeMetrics(nodeId, {
-                    'Risk': 'Medium',
-                    'Users': Math.floor(Math.random() * 3) + 2,
-                    'Roles': Math.floor(Math.random() * 2) + 1
-                });
-                log(`📦 S3FullAccess: Data access permissions`, 'warning');
-            }
-            
             if (stepIndex === 5) {
                 metrics.totalPolicies++;
+                metrics.adminPolicies++;
+                metrics.totalUsers = Math.floor(Math.random() * 3) + 1;
+                metrics.totalRoles = Math.floor(Math.random() * 2) + 1;
                 updateNodeMetrics(nodeId, {
-                    'Risk': 'Low',
-                    'Users': Math.floor(Math.random() * 5) + 3,
-                    'Roles': Math.floor(Math.random() * 3) + 2
+                    'Risk': 'Critical',
+                    'Users': metrics.totalUsers,
+                    'Roles': metrics.totalRoles
                 });
-                log(`👁️ ReadOnlyAccess: Safe permissions detected`, 'success');
+                log(`👑 AdministratorAccess found: ${metrics.totalUsers} users, ${metrics.totalRoles} roles`, 'error');
             }
             
             // Calculate risk score
@@ -677,10 +767,57 @@
             log('✅ IAM Permission Analysis completed!', 'success');
             log(`📊 Found ${metrics.totalPolicies} policies: ${metrics.adminPolicies} admin, ${metrics.escalationPolicies} escalation risk`, 'success');
             log(`⚠️ Risk Score: ${metrics.riskScore}% - ${metrics.totalUsers} users, ${metrics.totalRoles} roles`, 'warning');
+            
+            // Добавляем выводы и рекомендации
+            log('', 'info');
+            log('🎯 ВЫВОДЫ И РЕКОМЕНДАЦИИ:', 'warning');
+            log('', 'info');
+            
+            if (metrics.adminPolicies > 0) {
+                log('🚨 КРИТИЧНО: Найдены административные политики - минимизировать использование', 'error');
+            }
+            
+            if (metrics.escalationPolicies > 0) {
+                log('⚠️ ВЫСОКИЙ РИСК: Обнаружены политики эскалации - проверить необходимость', 'warning');
+            }
+            
+            if (metrics.riskScore > 70) {
+                log('🔥 МАКСИМАЛЬНЫЙ РИСК: Критический уровень угроз - немедленные действия', 'error');
+            } else if (metrics.riskScore > 40) {
+                log('⚠️ ВЫСОКИЙ РИСК: Требуется пересмотр политик безопасности', 'warning');
+            } else {
+                log('✅ НИЗКИЙ РИСК: Политики безопасности в порядке', 'success');
+            }
+            
+            log('', 'info');
+            log('🔧 СЛЕДУЮЩИЕ ШАГИ:', 'warning');
+            log('1. Удалить неиспользуемые административные политики', 'info');
+            log('2. Заменить широкие политики на минимально необходимые', 'info');
+            log('3. Внедрить принцип минимальных привилегий', 'info');
+            log('4. Настроить мониторинг изменений IAM', 'info');
+            log('5. Регулярно проводить аудит политик', 'info');
         }
         
         updateMetrics();
         log('🎯 IAM Permission Analysis ready', 'info');
+        log('📋 Алгоритм: 1) ReadOnlyAccess → 2) S3FullAccess → 3) EC2FullAccess → 4) LambdaFullAccess → 5) IAMFullAccess → 6) AdministratorAccess', 'info');
+        log('🔍 Каждый шаг: анализ политики → подсчет пользователей/ролей → оценка риска → обновление метрик', 'info');
+        log('⚠️ Цель: найти опасные политики и привилегии эскалации в IAM', 'warning');
+        
+        // Sources panel
+        const sourcesPanel = document.createElement('div');
+        sourcesPanel.className = 'sources-panel';
+        sourcesPanel.innerHTML = `
+            <h4>📚 Источники и инструменты:</h4>
+            <ul>
+                <li><a href="https://github.com/nccgroup/ScoutSuite" target="_blank">🔍 ScoutSuite</a> - Multi-cloud security auditing tool</li>
+                <li><a href="https://github.com/RhinoSecurityLabs/pacu" target="_blank">⚡ Pacu</a> - AWS exploitation framework</li>
+                <li><a href="https://github.com/NetSPI/aws_consoler" target="_blank">🔐 AWS_Consoler</a> - IAM privilege escalation</li>
+                <li><a href="https://aws.amazon.com/iam/" target="_blank">🔐 AWS IAM</a> - Identity and Access Management</li>
+                <li><a href="https://github.com/andresriancho/enumerate-iam" target="_blank">🎯 Enumerate-IAM</a> - IAM enumeration tool</li>
+            </ul>
+        `;
+        document.body.appendChild(sourcesPanel);
     </script>
 </body>
 </html>

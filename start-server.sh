@@ -10,16 +10,16 @@ echo ""
 # Check if Python is available
 if command -v python3 &> /dev/null; then
     echo "🐍 Using Python 3..."
-    echo "🌐 Server will be available at: http://localhost:8000"
+    echo "🌐 Server will be available at: http://localhost:8080"
     echo "⏹️  Press Ctrl+C to stop the server"
     echo ""
-    python3 -m http.server 8000
+    python3 -m http.server 8080
 elif command -v python &> /dev/null; then
     echo "🐍 Using Python 2..."
-    echo "🌐 Server will be available at: http://localhost:8000"
+    echo "🌐 Server will be available at: http://localhost:8080"
     echo "⏹️  Press Ctrl+C to stop the server"
     echo ""
-    python -m SimpleHTTPServer 8000
+    python -m SimpleHTTPServer 8080
 else
     echo "❌ Python not found. Please install Python or use another method."
     echo ""
