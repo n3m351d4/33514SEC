@@ -1,7 +1,5 @@
 # 🔒 33514SEC
 
-Simple TTP by n3m351d4
-
 Interactive cybersecurity analysis tools and visualizations built with modern web technologies.
 
 ## 🚀 Features
