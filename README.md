@@ -1,4 +1,4 @@
-# 🔒 Security Visualizations Hub
+# 🔒 33514SEC
 
 Simple TTP by n3m351d4
 
@@ -15,7 +15,7 @@ Interactive cybersecurity analysis tools and visualizations built with modern we
 ## 📁 Project Structure
 
 ```
-Sitevisualizations/
+33514SEC/
 ├── index.html                 # Main hub page
 ├── aws/                      # AWS security visualizations
 │   └── aws-crypto-mining-attack.html
@@ -46,8 +46,8 @@ Sitevisualizations/
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/Sitevisualizations.git
-   cd Sitevisualizations
+   git clone https://github.com/n3m351d4/33514SEC.git
+   cd 33514SEC
    ```
 
 2. **Open in browser**:
@@ -102,9 +102,9 @@ If you find this project helpful, please consider:
 
 ## 🔗 Links
 
-- [Live Demo](https://yourusername.github.io/Sitevisualizations/)
-- [Issues](https://github.com/yourusername/Sitevisualizations/issues)
-- [Discussions](https://github.com/yourusername/Sitevisualizations/discussions)
+- [Live Demo](https://n3m351d4.github.io/33514SEC/)
+- [Issues](https://github.com/n3m351d4/33514SEC/issues)
+- [Discussions](https://github.com/n3m351d4/33514SEC/discussions)
 
 ---
 
