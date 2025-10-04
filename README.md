@@ -59,14 +59,6 @@ This project follows a **cyberpunk/hacker aesthetic** with:
 - **Modern CSS**: Flexbox, Grid, CSS Variables
 - **Interactive JavaScript**: ES6+ features, async/await
 
-## 📝 Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/new-visualization`
-3. Commit your changes: `git commit -am 'Add new visualization'`
-4. Push to the branch: `git push origin feature/new-visualization`
-5. Submit a pull request
-
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
