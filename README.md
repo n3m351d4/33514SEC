@@ -79,4 +79,4 @@ If you find this project helpful, please consider:
 
 ---
 
-**Simple TTP by n3m351d4**
+**Built with ❤️ for the cybersecurity community**
